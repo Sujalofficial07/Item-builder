@@ -16,7 +16,7 @@ import java.util.List;
 
 public class SkillsScreen extends Screen {
     
-    // Vanilla Double Chest Texture
+    // Generic 54 slot texture
     private static final Identifier TEXTURE = new Identifier("textures/gui/container/generic_54.png");
     private final int guiWidth = 176;
     private final int guiHeight = 222;
@@ -34,45 +34,40 @@ public class SkillsScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context);
         
-        // Draw Chest Background
         context.drawTexture(TEXTURE, guiLeft, guiTop, 0, 0, guiWidth, guiHeight);
         context.drawText(textRenderer, "Your Skills", guiLeft + 8, guiTop + 6, 0x404040, false);
 
-        // --- DRAW SKILL ICONS (Row 2 & 3) ---
-        // Format: drawSkill(context, Item, Skill, SlotIndex, mouseX, mouseY)
+        // Slots Logic: 
+        // Row 0: 0-8
+        // Row 1: 9-17
+        // Row 2: 18-26 (We want 19, 20, 21, 22, 23, 24, 25)
         
-        // Row 2 (Combat, Mining, Farming)
+        // Row 2 (Index 19 starts at Col 1)
         drawSkillItem(context, Items.STONE_SWORD, SkyblockSkillsApi.Skill.COMBAT, 19, mouseX, mouseY);
         drawSkillItem(context, Items.DIAMOND_PICKAXE, SkyblockSkillsApi.Skill.MINING, 20, mouseX, mouseY);
         drawSkillItem(context, Items.GOLDEN_HOE, SkyblockSkillsApi.Skill.FARMING, 21, mouseX, mouseY);
         drawSkillItem(context, Items.JUNGLE_SAPLING, SkyblockSkillsApi.Skill.FORAGING, 22, mouseX, mouseY);
-        
-        // Row 3 (Fishing, Enchanting, Alchemy)
         drawSkillItem(context, Items.FISHING_ROD, SkyblockSkillsApi.Skill.FISHING, 23, mouseX, mouseY);
         drawSkillItem(context, Items.ENCHANTING_TABLE, SkyblockSkillsApi.Skill.ENCHANTING, 24, mouseX, mouseY);
         drawSkillItem(context, Items.BREWING_STAND, SkyblockSkillsApi.Skill.ALCHEMY, 25, mouseX, mouseY);
 
-        // Close Button (Red Glass at bottom center)
-        drawItem(context, Items.BARRIER, 49, "Close");
+        // Close Button (Slot 49 = Row 5, Col 4)
+        drawItem(context, Items.BARRIER, 49);
 
         super.render(context, mouseX, mouseY, delta);
     }
 
-    // --- HELPER TO DRAW SKILL ITEM ---
     private void drawSkillItem(DrawContext context, Item item, SkyblockSkillsApi.Skill skill, int slotIndex, int mx, int my) {
         int col = slotIndex % 9;
         int row = slotIndex / 9;
         int x = guiLeft + 8 + col * 18;
         int y = guiTop + 18 + row * 18;
 
-        // Draw Item
         context.drawItem(new ItemStack(item), x, y);
 
-        // Hover Effect
         if (isHovering(x, y, mx, my)) {
-            context.fill(x, y, x + 16, y + 16, 0x80FFFFFF); // White highlight
+            context.fill(x, y, x + 16, y + 16, 0x80FFFFFF); 
             
-            // Tooltip Logic
             List<Text> tooltip = new ArrayList<>();
             double xp = SkyblockSkillsApi.getXp(client.player, skill);
             int level = SkyblockSkillsApi.getLevelFromXp(xp);
@@ -87,8 +82,7 @@ public class SkillsScreen extends Screen {
         }
     }
     
-    // --- HELPER FOR STATIC ITEMS ---
-    private void drawItem(DrawContext context, Item item, int slotIndex, String name) {
+    private void drawItem(DrawContext context, Item item, int slotIndex) {
         int col = slotIndex % 9;
         int row = slotIndex / 9;
         int x = guiLeft + 8 + col * 18;
@@ -120,7 +114,6 @@ public class SkillsScreen extends Screen {
     }
 
     private void openDetail(SkyblockSkillsApi.Skill skill) {
-        // Play Sound
         client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
         client.setScreen(new SkillDetailScreen(skill));
     }
