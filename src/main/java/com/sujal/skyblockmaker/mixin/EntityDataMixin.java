@@ -1,5 +1,6 @@
 package com.sujal.skyblockmaker.mixin;
 
+import com.sujal.skyblockmaker.util.IEntityDataSaver; // New Import
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import org.spongepowered.asm.mixin.Mixin;
