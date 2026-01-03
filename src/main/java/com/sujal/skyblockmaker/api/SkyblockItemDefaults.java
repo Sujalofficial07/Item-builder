@@ -6,48 +6,38 @@ import net.minecraft.item.Items;
 
 public class SkyblockItemDefaults {
 
-    // Ye function check karega ki item Vanilla hai ya nahi, aur stats lagayega
     public static void convertToSkyblockItem(ItemStack stack) {
-        // Agar item pehle se Skyblock item hai, toh kuch mat karo
-        if (stack.hasNbt() && stack.getNbt().contains(SkyblockStatsApi.NBT_KEY)) {
-            return;
-        }
+        if (stack.hasNbt() && stack.getNbt().contains(SkyblockStatsApi.NBT_KEY)) return;
 
         Item item = stack.getItem();
 
-        // === SWORDS ===
+        // Vanilla Items -> Skyblock God Items
         if (item == Items.DIAMOND_SWORD) {
-            applyStats(stack, "Diamond Sword", "UNCOMMON", 30, 0, 0, 0);
-        } else if (item == Items.IRON_SWORD) {
-            applyStats(stack, "Iron Sword", "COMMON", 20, 0, 0, 0);
-        } else if (item == Items.GOLDEN_SWORD) {
-            applyStats(stack, "Golden Sword", "COMMON", 15, 0, 0, 50); // Gold has Intelligence
+            apply(stack, "UNCOMMON", 35, 0, 0, 0, 0, 0);
         } else if (item == Items.NETHERITE_SWORD) {
-            applyStats(stack, "Netherite Blade", "RARE", 50, 20, 0, 0);
+            apply(stack, "RARE", 60, 30, 0, 0, 0, 0);
+        } else if (item == Items.GOLDEN_SWORD) {
+            apply(stack, "COMMON", 20, 0, 0, 0, 0, 50); // Gold has Intel
+            SkyblockStatsApi.setString(stack, "AbilityName", "Gold Rush");
+            SkyblockStatsApi.setString(stack, "AbilityDesc", "Grants speed on use.");
+        } else if (item == Items.DIAMOND_CHESTPLATE) {
+            apply(stack, "UNCOMMON", 0, 0, 0, 120, 60, 0);
+        } else if (item == Items.NETHERITE_CHESTPLATE) {
+            apply(stack, "EPIC", 0, 10, 0, 180, 90, 0);
         }
-
-        // === ARMOR ===
-        else if (item == Items.DIAMOND_CHESTPLATE) {
-            applyStats(stack, "Diamond Chestplate", "UNCOMMON", 0, 0, 100, 50); // 100 HP, 50 Def
-        } else if (item == Items.IRON_CHESTPLATE) {
-            applyStats(stack, "Iron Chestplate", "COMMON", 0, 0, 50, 30);
-        }
-        
-        // Tum yahan aur items add kar sakte ho...
     }
 
-    private static void applyStats(ItemStack stack, String name, String rarity, double dmg, double str, double hp, double def) {
-        // 1. Basic Setup
-        SkyblockStatsApi.setRarity(stack, rarity);
+    private static void apply(ItemStack s, String r, double dmg, double str, double cc, double hp, double def, double intel) {
+        SkyblockStatsApi.setString(s, "Rarity", r);
+        if (dmg > 0) SkyblockStatsApi.setStat(s, SkyblockStatsApi.StatType.DAMAGE, dmg);
+        if (str > 0) SkyblockStatsApi.setStat(s, SkyblockStatsApi.StatType.STRENGTH, str);
+        if (cc > 0) SkyblockStatsApi.setStat(s, SkyblockStatsApi.StatType.CRIT_CHANCE, cc);
+        if (hp > 0) SkyblockStatsApi.setStat(s, SkyblockStatsApi.StatType.HEALTH, hp);
+        if (def > 0) SkyblockStatsApi.setStat(s, SkyblockStatsApi.StatType.DEFENSE, def);
+        if (intel > 0) SkyblockStatsApi.setStat(s, SkyblockStatsApi.StatType.INTELLIGENCE, intel);
         
-        // 2. Stats
-        if (dmg > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DAMAGE, dmg);
-        if (str > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.STRENGTH, str);
-        if (hp > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.HEALTH, hp);
-        if (def > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DEFENSE, def);
-
-        // 3. Hide Vanilla Text
-        stack.addHideFlag(ItemStack.TooltipSection.MODIFIERS);
-        stack.addHideFlag(ItemStack.TooltipSection.ADDITIONAL);
+        // Hide vanilla
+        s.addHideFlag(ItemStack.TooltipSection.MODIFIERS);
+        s.addHideFlag(ItemStack.TooltipSection.ADDITIONAL);
     }
 }
