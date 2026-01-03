@@ -10,52 +10,71 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class ItemBuilderScreen extends Screen {
 
-    // Inputs
     private TextFieldWidget nameF, reforgeF, rarityF, loreF, abNameF, abDescF;
     private TextFieldWidget dmgF, strF, ccF, cdF, hpF, defF, spdF, intelF;
+    
+    // New: Item Type Selector
+    private String currentType = "SWORD";
+    private final List<String> itemTypes = Arrays.asList("SWORD", "BOW", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS", "PICKAXE", "AXE", "SHOVEL", "HOE");
+    private ButtonWidget typeButton;
 
     public ItemBuilderScreen() { super(Text.literal("Hypixel Item Architect")); }
 
     @Override
     protected void init() {
-        int x = this.width / 2 - 150; // Wider area
+        int x = this.width / 2 - 160; // Thoda aur wide kiya
         int y = 20;
 
-        // --- Row 1: Identity ---
-        addInput(reforgeF = createField(x, y, 60, "Prefix (Spicy)"));
-        addInput(nameF = createField(x + 65, y, 140, "Item Name"));
-        addInput(rarityF = createField(x + 210, y, 90, "Rarity"));
+        // === ROW 1: Type | Rarity | Reforge ===
+        // Item Type Cycle Button
+        typeButton = ButtonWidget.builder(Text.literal("Type: " + currentType), button -> {
+            int index = itemTypes.indexOf(currentType);
+            currentType = itemTypes.get((index + 1) % itemTypes.size());
+            button.setMessage(Text.literal("Type: " + currentType));
+        }).dimensions(x, y, 100, 18).build();
+        addDrawableChild(typeButton);
+
+        addInput(rarityF = createField(x + 105, y, 100, "Rarity (LEGENDARY)"));
+        addInput(reforgeF = createField(x + 210, y, 110, "Prefix (Spicy)"));
         y += 25;
 
-        // --- Row 2: Offensive ---
-        addInput(dmgF = createField(x, y, 70, "Dmg"));
-        addInput(strF = createField(x + 75, y, 70, "Str"));
-        addInput(ccF = createField(x + 150, y, 70, "CC %"));
-        addInput(cdF = createField(x + 225, y, 70, "CD %"));
+        // === ROW 2: Identity ===
+        addInput(nameF = createField(x, y, 320, "Item Name"));
         y += 25;
 
-        // --- Row 3: Defensive/Misc ---
-        addInput(hpF = createField(x, y, 70, "HP"));
-        addInput(defF = createField(x + 75, y, 70, "Def"));
-        addInput(spdF = createField(x + 150, y, 70, "Speed"));
-        addInput(intelF = createField(x + 225, y, 70, "Intel"));
+        // === ROW 3: Stats (Compact Grid) ===
+        // Offensive
+        addInput(dmgF = createField(x, y, 75, "Damage"));
+        addInput(strF = createField(x + 80, y, 75, "Strength"));
+        addInput(ccF = createField(x + 160, y, 75, "Crit %"));
+        addInput(cdF = createField(x + 240, y, 80, "Crit Dmg %"));
+        y += 25;
+
+        // Defensive
+        addInput(hpF = createField(x, y, 75, "Health"));
+        addInput(defF = createField(x + 80, y, 75, "Defense"));
+        addInput(spdF = createField(x + 160, y, 75, "Speed"));
+        addInput(intelF = createField(x + 240, y, 80, "Intel"));
         y += 30;
 
-        // --- Row 4: Description ---
-        addInput(loreF = createField(x, y, 300, "Flavor Text (Gray Lore)"));
+        // === ROW 4: Description ===
+        addInput(loreF = createField(x, y, 320, "Lore / Description"));
         y += 25;
 
-        // --- Row 5: Ability ---
-        addInput(abNameF = createField(x, y, 300, "Ability Name (e.g. Wither Impact)"));
+        // === ROW 5: Ability ===
+        addInput(abNameF = createField(x, y, 320, "Ability Name"));
         y += 25;
-        addInput(abDescF = createField(x, y, 300, "Ability Description"));
+        addInput(abDescF = createField(x, y, 320, "Ability Description"));
         y += 30;
 
-        // --- Button ---
-        addDrawableChild(ButtonWidget.builder(Text.literal("CONSTRUCT ITEM"), b -> sendPacket())
-                .dimensions(this.width / 2 - 50, y, 100, 20).build());
+        // === CREATE BUTTON ===
+        addDrawableChild(ButtonWidget.builder(Text.literal("CREATE ITEM"), b -> sendPacket())
+                .dimensions(this.width / 2 - 60, y, 120, 20).build());
     }
 
     private TextFieldWidget createField(int x, int y, int w, String placeholder) {
@@ -63,11 +82,11 @@ public class ItemBuilderScreen extends Screen {
         f.setPlaceholder(Text.literal(placeholder));
         return f;
     }
-
     private void addInput(TextFieldWidget w) { this.addDrawableChild(w); }
 
     private void sendPacket() {
         PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeString(currentType); // Send Selected Type
         buf.writeString(nameF.getText());
         buf.writeString(reforgeF.getText());
         buf.writeString(rarityF.getText());
