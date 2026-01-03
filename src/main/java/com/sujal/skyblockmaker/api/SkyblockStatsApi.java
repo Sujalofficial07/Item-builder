@@ -10,7 +10,6 @@ public class SkyblockStatsApi {
         STRENGTH, DAMAGE, CRIT_CHANCE, HEALTH, DEFENSE
     }
 
-    // Set Stat
     public static void setStat(ItemStack stack, StatType stat, double value) {
         NbtCompound nbt = stack.getOrCreateNbt();
         NbtCompound data = nbt.contains(NBT_KEY) ? nbt.getCompound(NBT_KEY) : new NbtCompound();
@@ -18,7 +17,6 @@ public class SkyblockStatsApi {
         nbt.put(NBT_KEY, data);
     }
 
-    // Get Stat
     public static double getStat(ItemStack stack, StatType stat) {
         if (stack.hasNbt() && stack.getNbt().contains(NBT_KEY)) {
             return stack.getNbt().getCompound(NBT_KEY).getDouble(stat.name());
@@ -26,7 +24,6 @@ public class SkyblockStatsApi {
         return 0;
     }
 
-    // Set Rarity
     public static void setRarity(ItemStack stack, String rarity) {
         NbtCompound nbt = stack.getOrCreateNbt();
         NbtCompound data = nbt.contains(NBT_KEY) ? nbt.getCompound(NBT_KEY) : new NbtCompound();
