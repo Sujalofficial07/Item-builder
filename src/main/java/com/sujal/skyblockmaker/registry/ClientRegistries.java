@@ -4,6 +4,7 @@ import com.sujal.skyblockmaker.api.SkyblockStatsApi;
 import com.sujal.skyblockmaker.client.SkyblockHudOverlay;
 import com.sujal.skyblockmaker.client.gui.ItemBuilderScreen;
 import com.sujal.skyblockmaker.client.gui.ProfileScreen;
+import com.sujal.skyblockmaker.client.gui.SkillsScreen; // NEW IMPORT
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -15,36 +16,44 @@ import net.minecraft.util.Formatting;
 
 public class ClientRegistries {
 
-    // Flag for Builder only. Profile opens instantly on Main Thread.
+    // Flag for Builder (needs to open on tick)
     private static boolean shouldOpenBuilder = false;
 
     public static void registerClientStuff() {
         
-        // 1. HUD
+        // 1. HUD REGISTER
         HudRenderCallback.EVENT.register(new SkyblockHudOverlay());
 
-        // 2. Commands
+        // 2. COMMANDS REGISTER
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             
-            // A. Builder
+            // A. /sbbuilder (Item Creator)
             dispatcher.register(ClientCommandManager.literal("sbbuilder")
                 .executes(context -> {
                     shouldOpenBuilder = true; 
                     return 1;
                 }));
 
-            // B. Profile (FIXED)
+            // B. /profile (Profile Stats GUI)
             dispatcher.register(ClientCommandManager.literal("profile")
                 .executes(context -> {
-                    // Force run on Render Thread to ensure Screen opens
                     MinecraftClient.getInstance().send(() -> {
                         MinecraftClient.getInstance().setScreen(new ProfileScreen(MinecraftClient.getInstance().player));
                     });
                     return 1;
                 }));
+
+            // C. /skills (Skills Menu - Double Chest Style) - NEW!
+            dispatcher.register(ClientCommandManager.literal("skills")
+                .executes(context -> {
+                    MinecraftClient.getInstance().send(() -> {
+                        MinecraftClient.getInstance().setScreen(new SkillsScreen());
+                    });
+                    return 1;
+                }));
         });
 
-        // 3. Tick Event (Builder Open Delay)
+        // 3. TICK EVENT (Safe GUI Opening for Builder)
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (shouldOpenBuilder) {
                 shouldOpenBuilder = false;
@@ -52,7 +61,7 @@ public class ClientRegistries {
             }
         });
 
-        // 4. Tooltips
+        // 4. TOOLTIPS REGISTER (The Visuals)
         registerTooltips();
     }
 
@@ -67,13 +76,14 @@ public class ClientRegistries {
                 Formatting AQUA = Formatting.AQUA;
                 Formatting YELLOW = Formatting.YELLOW;
 
-                // Main Stats
+                // --- Main Stats ---
                 addStat(lines, stack, SkyblockStatsApi.StatType.DAMAGE, "Damage", RED);
                 addStat(lines, stack, SkyblockStatsApi.StatType.STRENGTH, "Strength", RED);
                 addStat(lines, stack, SkyblockStatsApi.StatType.CRIT_CHANCE, "Crit Chance", "%", BLUE);
                 addStat(lines, stack, SkyblockStatsApi.StatType.CRIT_DAMAGE, "Crit Damage", "%", BLUE);
                 addStat(lines, stack, SkyblockStatsApi.StatType.ATTACK_SPEED, "Bonus Attack Speed", "%", YELLOW);
 
+                // --- Defensive Stats ---
                 if (SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.HEALTH) > 0 || SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.DEFENSE) > 0) {
                     lines.add(Text.literal(""));
                 }
@@ -81,15 +91,16 @@ public class ClientRegistries {
                 addStat(lines, stack, SkyblockStatsApi.StatType.DEFENSE, "Defense", GREEN);
                 addStat(lines, stack, SkyblockStatsApi.StatType.SPEED, "Speed", Formatting.WHITE);
                 addStat(lines, stack, SkyblockStatsApi.StatType.INTELLIGENCE, "Intelligence", AQUA);
+                addStat(lines, stack, SkyblockStatsApi.StatType.MAGIC_FIND, "Magic Find", AQUA);
 
-                // Lore
+                // --- Lore ---
                 String lore = SkyblockStatsApi.getString(stack, "Lore");
                 if (!lore.isEmpty()) {
                     lines.add(Text.literal(""));
                     lines.add(Text.literal(lore).formatted(Formatting.GRAY, Formatting.ITALIC));
                 }
 
-                // Ability
+                // --- Abilities ---
                 String abName = SkyblockStatsApi.getString(stack, "AbilityName");
                 if (!abName.isEmpty()) {
                     lines.add(Text.literal(""));
@@ -100,7 +111,7 @@ public class ClientRegistries {
                     lines.add(Text.literal(abDesc).formatted(Formatting.GRAY));
                 }
 
-                // Rarity
+                // --- Rarity ---
                 String rarity = SkyblockStatsApi.getString(stack, "Rarity");
                 if (!rarity.isEmpty()) {
                     lines.add(Text.literal(""));
