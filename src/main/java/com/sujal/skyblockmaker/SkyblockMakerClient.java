@@ -11,40 +11,24 @@ import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import java.util.Set; // Set import karna mat bhoolna
+import java.util.Set;
 
 public class SkyblockMakerClient implements ClientModInitializer {
 
     private static boolean shouldOpenGui = false;
-    // private static final String REQUIRED_TAG = "sb_admin"; // Abhi iski zarurat nahi
 
     @Override
     public void onInitializeClient() {
-        System.out.println("SkyblockMaker Client Loaded (Lock Removed for Testing)...");
-
-        // 1. HUD Register
         HudRenderCallback.EVENT.register(new SkyblockHudOverlay());
 
-        // 2. Command Register
+        // Command logic (No Lock for now)
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommandManager.literal("sbbuilder")
-                .executes(context -> {
-                    
-                    // === DEBUGGING (Console mein tags check karne ke liye) ===
-                    Set<String> tags = context.getSource().getPlayer().getCommandTags();
-                    System.out.println("Current Player Tags: " + tags); 
-
-                    // === LOCK REMOVED (Direct Access) ===
-                    // Humne 'if' condition hata di hai taaki GUI har haal mein khule.
-                    
-                    System.out.println("Access Granted (Bypassed)! Scheduling GUI...");
-                    context.getSource().sendFeedback(Text.literal("Opening Builder..."));
-                    shouldOpenGui = true; 
-                    return 1;
-                }));
+            dispatcher.register(ClientCommandManager.literal("sbbuilder").executes(context -> {
+                shouldOpenGui = true; 
+                return 1;
+            }));
         });
 
-        // 3. Tick Event
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (shouldOpenGui) {
                 shouldOpenGui = false;
@@ -52,24 +36,50 @@ public class SkyblockMakerClient implements ClientModInitializer {
             }
         });
 
-        // 4. Tooltips
+        // === PROFESSIONAL TOOLTIP LOGIC ===
         ItemTooltipCallback.EVENT.register((stack, context, lines) -> {
             if (stack.hasNbt() && stack.getNbt().contains(SkyblockStatsApi.NBT_KEY)) {
                 
-                double strength = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.STRENGTH);
-                if (strength != 0) {
-                    lines.add(Text.literal("Strength: +" + (int)strength).formatted(Formatting.RED));
-                }
+                // 1. DAMAGE & STRENGTH (Red)
+                double dmg = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.DAMAGE);
+                double str = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.STRENGTH);
                 
-                double defense = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.DEFENSE);
-                if (defense != 0) {
-                    lines.add(Text.literal("Defense: +" + (int)defense).formatted(Formatting.GREEN));
-                }
+                if (dmg > 0) lines.add(Text.literal("Damage: +" + (int)dmg).formatted(Formatting.RED));
+                if (str > 0) lines.add(Text.literal("Strength: +" + (int)str).formatted(Formatting.RED));
 
+                // 2. CRIT STATS (Blue)
+                double cc = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.CRIT_CHANCE);
+                double cd = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.CRIT_DAMAGE);
+                
+                if (cc > 0) lines.add(Text.literal("Crit Chance: " + (int)cc + "%").formatted(Formatting.BLUE));
+                if (cd > 0) lines.add(Text.literal("Crit Damage: " + (int)cd + "%").formatted(Formatting.BLUE));
+
+                // 3. DEFENSE & HEALTH (Green)
+                double hp = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.HEALTH);
+                double def = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.DEFENSE);
+
+                if (hp > 0) lines.add(Text.literal("Health: +" + (int)hp).formatted(Formatting.GREEN));
+                if (def > 0) lines.add(Text.literal("Defense: +" + (int)def).formatted(Formatting.GREEN));
+
+                // 4. INTELLIGENCE (Aqua)
+                double intel = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.INTELLIGENCE);
+                if (intel > 0) lines.add(Text.literal("Intelligence: +" + (int)intel).formatted(Formatting.AQUA));
+
+                // 5. RARITY (Bold at Bottom)
                 String rarity = stack.getNbt().getCompound(SkyblockStatsApi.NBT_KEY).getString("Rarity");
                 if (!rarity.isEmpty()) {
-                    lines.add(Text.literal(""));
-                    lines.add(Text.literal(rarity.toUpperCase()).formatted(Formatting.GOLD, Formatting.BOLD));
+                    lines.add(Text.literal("")); // Empty Line
+                    
+                    Formatting color = switch (rarity.toUpperCase()) {
+                        case "LEGENDARY" -> Formatting.GOLD;
+                        case "RARE" -> Formatting.BLUE;
+                        case "EPIC" -> Formatting.DARK_PURPLE;
+                        case "UNCOMMON" -> Formatting.GREEN;
+                        case "MYTHIC" -> Formatting.LIGHT_PURPLE;
+                        default -> Formatting.WHITE;
+                    };
+                    
+                    lines.add(Text.literal(rarity.toUpperCase() + " ITEM").formatted(color, Formatting.BOLD));
                 }
             }
         });
