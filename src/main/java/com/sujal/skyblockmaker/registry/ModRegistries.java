@@ -5,7 +5,6 @@ import com.sujal.skyblockmaker.api.SkyblockStatHandler;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.decoration.ArmorStandEntity; // Changed Import
 import net.minecraft.item.ItemStack;
 
 import java.util.ArrayList;
@@ -23,17 +22,14 @@ public class ModRegistries {
 
         ServerTickEvents.END_WORLD_TICK.register(world -> {
             
-            // 1. CLEANUP DAMAGE INDICATORS (Armor Stands)
+            // 1. CLEANUP DAMAGE INDICATORS
             List<Entity> toRemove = new ArrayList<>();
-            // Loop through Armor Stands
             for (Entity entity : world.getEntitiesByType(net.minecraft.entity.EntityType.ARMOR_STAND, e -> true)) {
-                // Check for our specific tag
-                if (entity.getScoreboardTags().contains("damage_indicator")) {
+                // Fix: getScoreboardTags -> getCommandTags
+                if (entity.getCommandTags().contains("damage_indicator")) {
                     
-                    // Float Up
                     entity.setPosition(entity.getPos().add(0, 0.05, 0));
                     
-                    // Kill after 20 ticks (1 second)
                     if (entity.age > 20) { 
                         toRemove.add(entity);
                     }
@@ -41,7 +37,7 @@ public class ModRegistries {
             }
             toRemove.forEach(Entity::discard);
 
-            // 2. Player Stats Update
+            // 2. Stats Update
             world.getPlayers().forEach(player -> {
                 for (int i = 0; i < player.getInventory().size(); i++) {
                     ItemStack stack = player.getInventory().getStack(i);
