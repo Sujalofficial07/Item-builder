@@ -14,32 +14,32 @@ public class SkyblockMakerClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        
-        // 1. Command Register (Client Side Only)
-        registerCommands();
+        // Console mein ye message aana chahiye start hote waqt
+        System.out.println("SkyblockMaker Client Loading...");
 
-        // 2. Tooltip Register
-        registerTooltips();
-    }
-
-    private void registerCommands() {
+        // 1. Command Register (/sbbuilder)
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(ClientCommandManager.literal("sbbuilder")
                 .executes(context -> {
-                    // Ye line server pe run hui toh crash karti hai, isliye ise Client file mein rakha hai
-                    MinecraftClient.getInstance().setScreen(new ItemBuilderScreen());
+                    System.out.println("Command /sbbuilder detected!"); // Debug log
+                    
+                    // FIX: Screen ko main thread par schedule karo taaki chat band hone par ye band na ho
+                    MinecraftClient client = MinecraftClient.getInstance();
+                    client.execute(() -> {
+                        client.setScreen(new ItemBuilderScreen());
+                    });
+                    
                     return 1;
                 }));
         });
-    }
 
-    private void registerTooltips() {
+        // 2. Tooltip Register (Stats Dikhana)
         ItemTooltipCallback.EVENT.register((stack, context, lines) -> {
             if (stack.hasNbt() && stack.getNbt().contains(SkyblockStatsApi.NBT_KEY)) {
                 
                 double strength = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.STRENGTH);
                 if (strength != 0) {
-                    lines.add(Text.literal("Strength: +" + strength).formatted(Formatting.RED));
+                    lines.add(Text.literal("Strength: +" + (int)strength).formatted(Formatting.RED));
                 }
 
                 String rarity = stack.getNbt().getCompound(SkyblockStatsApi.NBT_KEY).getString("Rarity");
