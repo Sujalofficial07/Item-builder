@@ -36,79 +36,65 @@ public class SkillDetailScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context);
         context.drawTexture(TEXTURE, guiLeft, guiTop, 0, 0, guiWidth, guiHeight);
-        context.drawText(textRenderer, capitalize(skill.name()) + " Progression", guiLeft + 8, guiTop + 6, 0x404040, false);
+        context.drawText(textRenderer, capitalize(skill.name()) + " Levels", guiLeft + 8, guiTop + 6, 0x404040, false);
 
         double currentXp = SkyblockSkillsApi.getXp(client.player, skill);
         int currentLevel = SkyblockSkillsApi.getLevelFromXp(currentXp);
 
-        // Draw Levels 1 to 25 (Simplification: Hypixel has pages, we fit 25 in one grid)
-        for (int i = 0; i < 27; i++) { // First 3 rows
+        // Draw 3 Rows of levels (Levels 1-27)
+        for (int i = 0; i < 27; i++) {
             int level = i + 1;
-            
-            // Determine Item (Green = Unlocked, Red = Locked)
+            int x = guiLeft + 8 + (i % 9) * 18;
+            int y = guiTop + 18 + (i / 9) * 18;
+
             ItemStack stack;
-            boolean unlocked = level <= currentLevel;
-            
-            if (unlocked) {
+            if (level <= currentLevel) {
                 stack = new ItemStack(Items.LIME_STAINED_GLASS_PANE); // Unlocked
             } else {
                 stack = new ItemStack(Items.RED_STAINED_GLASS_PANE); // Locked
             }
-            
-            if (i == 26) { // Level 50 placeholder (Gold Block)
-                 // Just keeping it simple loop for now
-            }
 
-            // Draw Item
-            int x = guiLeft + 8 + (i % 9) * 18;
-            int y = guiTop + 18 + (i / 9) * 18;
             context.drawItem(stack, x, y);
 
-            // Hover Tooltip
-            if (mx >= x && mx < x + 16 && my >= y && my < y + 16) {
+            if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
                 context.fill(x, y, x + 16, y + 16, 0x80FFFFFF);
                 
                 List<Text> tooltip = new ArrayList<>();
-                tooltip.add(Text.literal((unlocked ? "§a" : "§c") + "Level " + level));
+                tooltip.add(Text.literal((level <= currentLevel ? "§a" : "§c") + "Level " + level));
                 tooltip.add(Text.literal(""));
                 tooltip.add(Text.literal("§7Rewards:"));
                 tooltip.add(Text.literal("§e+" + (level * 100) + " Coins"));
-                // Stat Reward logic generic
-                tooltip.add(Text.literal("§b+Stat Bonus")); 
+                tooltip.add(Text.literal("§bStat Bonuses")); 
                 tooltip.add(Text.literal(""));
-                tooltip.add(Text.literal(unlocked ? "§aUNLOCKED" : "§cLOCKED"));
+                tooltip.add(Text.literal(level <= currentLevel ? "§aUNLOCKED" : "§cLOCKED"));
                 
                 context.drawTooltip(textRenderer, tooltip, mouseX, mouseY);
             }
         }
 
-        // Back Button (Arrow at bottom left)
-        int backX = guiLeft + 8;
-        int backY = guiTop + guiHeight - 26; // Approx
-        context.drawItem(new ItemStack(Items.ARROW), backX, backY); // Slot 45
+        // Back Button (Row 6, Col 5 - Center)
+        // Slot 49 like main screen
+        int backX = guiLeft + 8 + 4 * 18; // Col 4 (5th slot)
+        int backY = guiTop + 18 + 5 * 18; // Row 5 (6th row)
+        context.drawItem(new ItemStack(Items.ARROW), backX, backY);
         
+        // Manual check for hover on Arrow
+        if (mouseX >= backX && mouseX < backX + 16 && mouseY >= backY && mouseY < backY + 16) {
+             context.fill(backX, backY, backX + 16, backY + 16, 0x80FFFFFF);
+             context.drawTooltip(textRenderer, Text.literal("§eGo Back"), mouseX, mouseY);
+        }
+
         super.render(context, mouseX, mouseY, delta);
     }
-    
-    // Variables for mouse hover check inside loop
-    private double mx, my;
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Update mouse pos for generic checks
-        this.mx = mouseX; 
-        this.my = mouseY;
-
-        // Check Back Button (Slot 45 approx coords)
-        // Slot 45 is at: col 0, row 5 (index starts 0) -> x=8, y=18 + 5*18 = 108
-        // Wait, generic_54 has 6 rows.
-        // Let's use simpler logic: 
-        int backX = guiLeft + 8;
-        int backY = guiTop + 18 + 5 * 18; // Row 6, Col 1
+        int backX = guiLeft + 8 + 4 * 18; 
+        int backY = guiTop + 18 + 5 * 18; 
         
         if (mouseX >= backX && mouseX < backX + 16 && mouseY >= backY && mouseY < backY + 16) {
              client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-             client.setScreen(new SkillsScreen()); // Go Back
+             client.setScreen(new SkillsScreen()); 
              return true;
         }
 
