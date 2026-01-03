@@ -1,6 +1,6 @@
 package com.sujal.skyblockmaker.api;
 
-import com.sujal.skyblockmaker.mixin.IEntityDataSaver;
+import com.sujal.skyblockmaker.util.IEntityDataSaver; // New Import
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 
@@ -8,6 +8,7 @@ public class SkyblockProfileApi {
     private static final String KEY = "SB_Profile";
 
     public static double getBaseStat(PlayerEntity player, SkyblockStatsApi.StatType stat) {
+        // Cast to the new interface location
         NbtCompound data = ((IEntityDataSaver) player).getPersistentData();
         if (!data.contains(KEY)) return getDefault(stat);
         
@@ -23,7 +24,6 @@ public class SkyblockProfileApi {
         data.put(KEY, profile);
     }
     
-    // Default stats jab new profile ho
     private static double getDefault(SkyblockStatsApi.StatType stat) {
         return switch (stat) {
             case HEALTH, SPEED, INTELLIGENCE -> 100;
