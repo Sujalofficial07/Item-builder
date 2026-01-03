@@ -14,9 +14,10 @@ public class ModPackets {
     public static void registerServerPackets() {
         ServerPlayNetworking.registerGlobalReceiver(ITEM_CREATE_PACKET, (server, player, handler, buf, responseSender) -> {
             
-            // 1. Reading HUGE Amount of Data
+            // 1. Read Data (Order MUST match Client)
+            String type = buf.readString(); // Read Type
             String name = buf.readString();
-            String reforge = buf.readString(); // Prefix like "Spicy"
+            String reforge = buf.readString();
             String rarity = buf.readString();
             String lore = buf.readString();
             String abilityName = buf.readString();
@@ -32,20 +33,33 @@ public class ModPackets {
             double intel = buf.readDouble();
 
             server.execute(() -> {
-                ItemStack stack = new ItemStack(Items.DIAMOND_SWORD); // Base Item
-                
-                // 2. Name Logic (Reforge + Name)
+                // 2. Select Item Material
+                ItemStack stack;
+                switch (type) {
+                    case "BOW" -> stack = new ItemStack(Items.BOW);
+                    case "HELMET" -> stack = new ItemStack(Items.DIAMOND_HELMET);
+                    case "CHESTPLATE" -> stack = new ItemStack(Items.DIAMOND_CHESTPLATE);
+                    case "LEGGINGS" -> stack = new ItemStack(Items.DIAMOND_LEGGINGS);
+                    case "BOOTS" -> stack = new ItemStack(Items.DIAMOND_BOOTS);
+                    case "PICKAXE" -> stack = new ItemStack(Items.DIAMOND_PICKAXE);
+                    case "AXE" -> stack = new ItemStack(Items.DIAMOND_AXE);
+                    case "SHOVEL" -> stack = new ItemStack(Items.DIAMOND_SHOVEL);
+                    case "HOE" -> stack = new ItemStack(Items.DIAMOND_HOE);
+                    default -> stack = new ItemStack(Items.DIAMOND_SWORD);
+                }
+
+                // 3. Name & Rarity
                 String fullName = (reforge.isEmpty() ? "" : reforge + " ") + name;
                 Formatting color = getRarityColor(rarity);
                 stack.setCustomName(Text.literal(fullName).formatted(color));
 
-                // 3. Hide Vanilla Junk
+                // 4. Hide Vanilla
                 stack.addHideFlag(ItemStack.TooltipSection.MODIFIERS);
                 stack.addHideFlag(ItemStack.TooltipSection.ADDITIONAL);
                 stack.addHideFlag(ItemStack.TooltipSection.UNBREAKABLE);
-                stack.getOrCreateNbt().putBoolean("Unbreakable", true); // Hypixel items don't break
+                stack.getOrCreateNbt().putBoolean("Unbreakable", true);
 
-                // 4. Saving Data
+                // 5. Save Stats
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DAMAGE, dmg);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.STRENGTH, str);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.CRIT_CHANCE, cc);
