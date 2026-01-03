@@ -2,6 +2,7 @@ package com.sujal.skyblockmaker.mixin;
 
 import com.sujal.skyblockmaker.api.SkyblockProfileApi;
 import com.sujal.skyblockmaker.api.SkyblockStatsApi;
+import com.sujal.skyblockmaker.api.SkyblockSkillsApi; // Import
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
@@ -60,15 +61,12 @@ public abstract class SkyblockCombatMixin {
         indicator.setInvisible(true);
         indicator.setNoGravity(true);
         
-        // Fix: setMarker private hai, isliye NBT use karenge
         NbtCompound nbt = new NbtCompound();
         indicator.writeCustomDataToNbt(nbt);
         nbt.putBoolean("Marker", true);
         indicator.readCustomDataFromNbt(nbt);
         
-        // Fix: addScoreboardTag -> addCommandTag
         indicator.addCommandTag("damage_indicator");
-        
         indicator.setVelocity(0, 0.1, 0);
 
         target.getWorld().spawnEntity(indicator);
@@ -80,6 +78,10 @@ public abstract class SkyblockCombatMixin {
         for(net.minecraft.item.ItemStack armor : p.getInventory().armor) {
             val += SkyblockStatsApi.getStat(armor, type);
         }
+        
+        // NEW: Add Skill Bonus (e.g. Combat Level -> Crit Chance)
+        val += SkyblockSkillsApi.getSkillStatBonus(p, type);
+        
         return val;
     }
-                }
+}
