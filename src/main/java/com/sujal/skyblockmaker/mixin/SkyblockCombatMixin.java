@@ -4,8 +4,9 @@ import com.sujal.skyblockmaker.api.SkyblockProfileApi;
 import com.sujal.skyblockmaker.api.SkyblockStatsApi;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.decoration.ArmorStandEntity; // SWITCHED TO ARMOR STAND
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,12 +21,10 @@ public abstract class SkyblockCombatMixin {
         if (target instanceof LivingEntity livingTarget && !target.getWorld().isClient) {
             PlayerEntity player = (PlayerEntity) (Object) this;
 
-            // 1. Get Stats
             double str = getTotalStat(player, SkyblockStatsApi.StatType.STRENGTH);
             double cc = getTotalStat(player, SkyblockStatsApi.StatType.CRIT_CHANCE);
             double cd = getTotalStat(player, SkyblockStatsApi.StatType.CRIT_DAMAGE);
             
-            // 2. Damage Logic
             float baseDamage = (float) player.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
             
             boolean isCrit = Math.random() * 100 < cc;
@@ -35,7 +34,6 @@ public abstract class SkyblockCombatMixin {
                 finalDamage *= (1 + (cd / 100.0f));
             }
 
-            // 3. Apply Extra Damage
             if (isCrit) {
                 float bonusCritDmg = finalDamage - baseDamage;
                 if (bonusCritDmg > 0) {
@@ -43,32 +41,34 @@ public abstract class SkyblockCombatMixin {
                 }
             }
 
-            // 4. SPAWN INDICATOR (Using Armor Stand - 100% Safe)
             spawnDamageIndicator(target, (int) finalDamage, isCrit);
         }
     }
 
     private void spawnDamageIndicator(Entity target, int damage, boolean isCrit) {
-        // ArmorStand is reliable for all versions
         ArmorStandEntity indicator = new ArmorStandEntity(target.getWorld(), target.getX(), target.getY() + target.getHeight(), target.getZ());
         
         String text;
         if (isCrit) {
-            text = "§f✨ §c" + damage + " §f✨"; // Colored Crit
+            text = "§f✨ §c" + damage + " §f✨"; 
         } else {
-            text = "§7" + damage; // Grey Normal
+            text = "§7" + damage;
         }
 
         indicator.setCustomName(Text.literal(text));
         indicator.setCustomNameVisible(true);
-        indicator.setInvisible(true); // Body invisible
-        indicator.setNoGravity(true); // Don't fall
-        indicator.setMarker(true); // Tiny hitbox (prevents interfering with hits)
+        indicator.setInvisible(true);
+        indicator.setNoGravity(true);
         
-        // Add a tag so we can delete it later in ModRegistries
-        indicator.addScoreboardTag("damage_indicator");
+        // Fix: setMarker private hai, isliye NBT use karenge
+        NbtCompound nbt = new NbtCompound();
+        indicator.writeCustomDataToNbt(nbt);
+        nbt.putBoolean("Marker", true);
+        indicator.readCustomDataFromNbt(nbt);
         
-        // Push it up slightly randomly
+        // Fix: addScoreboardTag -> addCommandTag
+        indicator.addCommandTag("damage_indicator");
+        
         indicator.setVelocity(0, 0.1, 0);
 
         target.getWorld().spawnEntity(indicator);
@@ -82,4 +82,4 @@ public abstract class SkyblockCombatMixin {
         }
         return val;
     }
-}
+                }
