@@ -14,55 +14,51 @@ public class ModPackets {
     public static void registerServerPackets() {
         ServerPlayNetworking.registerGlobalReceiver(ITEM_CREATE_PACKET, (server, player, handler, buf, responseSender) -> {
             
-            // 1. Read All Data
             String itemName = buf.readString();
             String rarity = buf.readString();
+            String lore = buf.readString(); // Read Lore
+            
             double strength = buf.readDouble();
             double defense = buf.readDouble();
             double health = buf.readDouble();
             double intel = buf.readDouble();
-            double critChance = buf.readDouble();
-            double critDmg = buf.readDouble();
+            double cc = buf.readDouble();
+            double cd = buf.readDouble();
 
             server.execute(() -> {
-                // Item create (Default Chestplate for now, later dropdown)
-                ItemStack newItem = new ItemStack(Items.DIAMOND_CHESTPLATE); 
-                
-                // 2. Set Custom Name with Rarity Color
+                ItemStack newItem = new ItemStack(Items.DIAMOND_SWORD); // Default base
+
+                // Color Logic
                 Formatting color = getRarityColor(rarity);
                 newItem.setCustomName(Text.literal(itemName).formatted(color));
-
-                // 3. CLEAN UP (Hide Vanilla "Armor +8" text)
                 newItem.addHideFlag(ItemStack.TooltipSection.MODIFIERS);
                 newItem.addHideFlag(ItemStack.TooltipSection.ADDITIONAL);
-                
-                // 4. Set All Stats
+
+                // Stats
                 SkyblockStatsApi.setStat(newItem, SkyblockStatsApi.StatType.STRENGTH, strength);
                 SkyblockStatsApi.setStat(newItem, SkyblockStatsApi.StatType.DEFENSE, defense);
                 SkyblockStatsApi.setStat(newItem, SkyblockStatsApi.StatType.HEALTH, health);
                 SkyblockStatsApi.setStat(newItem, SkyblockStatsApi.StatType.INTELLIGENCE, intel);
-                SkyblockStatsApi.setStat(newItem, SkyblockStatsApi.StatType.CRIT_CHANCE, critChance);
-                SkyblockStatsApi.setStat(newItem, SkyblockStatsApi.StatType.CRIT_DAMAGE, critDmg);
+                SkyblockStatsApi.setStat(newItem, SkyblockStatsApi.StatType.CRIT_CHANCE, cc);
+                SkyblockStatsApi.setStat(newItem, SkyblockStatsApi.StatType.CRIT_DAMAGE, cd);
                 
                 SkyblockStatsApi.setRarity(newItem, rarity);
+                SkyblockStatsApi.setLore(newItem, lore); // Set Lore
 
                 player.getInventory().insertStack(newItem);
             });
         });
     }
 
-    // Helper: Rarity to Color Converter
     private static Formatting getRarityColor(String rarity) {
-        switch (rarity.toUpperCase()) {
-            case "COMMON": return Formatting.WHITE;
-            case "UNCOMMON": return Formatting.GREEN;
-            case "RARE": return Formatting.BLUE;
-            case "EPIC": return Formatting.DARK_PURPLE;
-            case "LEGENDARY": return Formatting.GOLD;
-            case "MYTHIC": return Formatting.LIGHT_PURPLE;
-            case "DIVINE": return Formatting.AQUA;
-            case "SPECIAL": return Formatting.RED;
-            default: return Formatting.GRAY;
-        }
+        return switch (rarity.toUpperCase()) {
+            case "COMMON" -> Formatting.WHITE;
+            case "UNCOMMON" -> Formatting.GREEN;
+            case "RARE" -> Formatting.BLUE;
+            case "EPIC" -> Formatting.DARK_PURPLE;
+            case "LEGENDARY" -> Formatting.GOLD;
+            case "MYTHIC" -> Formatting.LIGHT_PURPLE;
+            default -> Formatting.GRAY;
+        };
     }
 }
