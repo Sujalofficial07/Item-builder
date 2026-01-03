@@ -1,4 +1,4 @@
-package com.sujal.skyblockmaker.mixin;
+package com.sujal.skyblockmaker.util; // Changed package
 
 import net.minecraft.nbt.NbtCompound;
 
