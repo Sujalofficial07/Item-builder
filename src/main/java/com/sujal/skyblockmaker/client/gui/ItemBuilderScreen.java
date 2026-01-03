@@ -12,59 +12,82 @@ import net.minecraft.text.Text;
 
 public class ItemBuilderScreen extends Screen {
 
-    private TextFieldWidget nameField, rarityField, loreField;
-    private TextFieldWidget strField, defField, hpField, intelField, ccField, cdField;
+    // Inputs
+    private TextFieldWidget nameF, reforgeF, rarityF, loreF, abNameF, abDescF;
+    private TextFieldWidget dmgF, strF, ccF, cdF, hpF, defF, spdF, intelF;
 
-    public ItemBuilderScreen() { super(Text.literal("Advanced Builder")); }
+    public ItemBuilderScreen() { super(Text.literal("Hypixel Item Architect")); }
 
     @Override
     protected void init() {
-        int x = this.width / 2 - 100; 
-        int y = 10;
+        int x = this.width / 2 - 150; // Wider area
+        int y = 20;
 
-        addInput(nameField = new TextFieldWidget(textRenderer, x, y, 200, 16, Text.literal("Name")), "Item Name");
-        addInput(rarityField = new TextFieldWidget(textRenderer, x, y + 20, 200, 16, Text.literal("Rarity")), "Rarity");
-        
-        // Lore Field (Description)
-        addInput(loreField = new TextFieldWidget(textRenderer, x, y + 40, 200, 16, Text.literal("Lore")), "Description (Lore)");
+        // --- Row 1: Identity ---
+        addInput(reforgeF = createField(x, y, 60, "Prefix (Spicy)"));
+        addInput(nameF = createField(x + 65, y, 140, "Item Name"));
+        addInput(rarityF = createField(x + 210, y, 90, "Rarity"));
+        y += 25;
 
-        y += 65; // Spacing increase ki
+        // --- Row 2: Offensive ---
+        addInput(dmgF = createField(x, y, 70, "Dmg"));
+        addInput(strF = createField(x + 75, y, 70, "Str"));
+        addInput(ccF = createField(x + 150, y, 70, "CC %"));
+        addInput(cdF = createField(x + 225, y, 70, "CD %"));
+        y += 25;
 
-        addInput(strField = new TextFieldWidget(textRenderer, x, y, 95, 16, Text.literal("Str")), "Strength");
-        addInput(defField = new TextFieldWidget(textRenderer, x + 105, y, 95, 16, Text.literal("Def")), "Defense");
+        // --- Row 3: Defensive/Misc ---
+        addInput(hpF = createField(x, y, 70, "HP"));
+        addInput(defF = createField(x + 75, y, 70, "Def"));
+        addInput(spdF = createField(x + 150, y, 70, "Speed"));
+        addInput(intelF = createField(x + 225, y, 70, "Intel"));
+        y += 30;
 
-        addInput(hpField = new TextFieldWidget(textRenderer, x, y + 20, 95, 16, Text.literal("HP")), "Health");
-        addInput(intelField = new TextFieldWidget(textRenderer, x + 105, y + 20, 95, 16, Text.literal("Intel")), "Intelligence");
-        
-        addInput(ccField = new TextFieldWidget(textRenderer, x, y + 40, 95, 16, Text.literal("CC")), "Crit %");
-        addInput(cdField = new TextFieldWidget(textRenderer, x + 105, y + 40, 95, 16, Text.literal("CD")), "Crit Dmg");
+        // --- Row 4: Description ---
+        addInput(loreF = createField(x, y, 300, "Flavor Text (Gray Lore)"));
+        y += 25;
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("Create Item"), b -> sendPacket())
-                .dimensions(x + 50, y + 70, 100, 20).build());
+        // --- Row 5: Ability ---
+        addInput(abNameF = createField(x, y, 300, "Ability Name (e.g. Wither Impact)"));
+        y += 25;
+        addInput(abDescF = createField(x, y, 300, "Ability Description"));
+        y += 30;
+
+        // --- Button ---
+        addDrawableChild(ButtonWidget.builder(Text.literal("CONSTRUCT ITEM"), b -> sendPacket())
+                .dimensions(this.width / 2 - 50, y, 100, 20).build());
     }
 
-    private void addInput(TextFieldWidget widget, String placeholder) {
-        widget.setPlaceholder(Text.literal(placeholder));
-        this.addDrawableChild(widget);
+    private TextFieldWidget createField(int x, int y, int w, String placeholder) {
+        TextFieldWidget f = new TextFieldWidget(textRenderer, x, y, w, 18, Text.of(""));
+        f.setPlaceholder(Text.literal(placeholder));
+        return f;
     }
+
+    private void addInput(TextFieldWidget w) { this.addDrawableChild(w); }
 
     private void sendPacket() {
         PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeString(nameField.getText());
-        buf.writeString(rarityField.getText());
-        buf.writeString(loreField.getText()); // Lore bhejo
-        
-        buf.writeDouble(parse(strField));
-        buf.writeDouble(parse(defField));
-        buf.writeDouble(parse(hpField));
-        buf.writeDouble(parse(intelField));
-        buf.writeDouble(parse(ccField));
-        buf.writeDouble(parse(cdField));
+        buf.writeString(nameF.getText());
+        buf.writeString(reforgeF.getText());
+        buf.writeString(rarityF.getText());
+        buf.writeString(loreF.getText());
+        buf.writeString(abNameF.getText());
+        buf.writeString(abDescF.getText());
+
+        buf.writeDouble(parse(dmgF));
+        buf.writeDouble(parse(strF));
+        buf.writeDouble(parse(ccF));
+        buf.writeDouble(parse(cdF));
+        buf.writeDouble(parse(hpF));
+        buf.writeDouble(parse(defF));
+        buf.writeDouble(parse(spdF));
+        buf.writeDouble(parse(intelF));
 
         ClientPlayNetworking.send(ModPackets.ITEM_CREATE_PACKET, buf);
         this.close();
     }
-    
+
     private double parse(TextFieldWidget f) { try { return Double.parseDouble(f.getText()); } catch(Exception e){ return 0; } }
 
     @Override
