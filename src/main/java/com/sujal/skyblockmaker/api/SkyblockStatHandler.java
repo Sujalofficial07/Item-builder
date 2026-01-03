@@ -8,11 +8,10 @@ import net.minecraft.item.ItemStack;
 public class SkyblockStatHandler {
 
     public static void updatePlayerStats(ServerPlayerEntity player) {
-        // Defaults
+        // 1. Defaults
         double health = SkyblockProfileApi.getBaseStat(player, SkyblockStatsApi.StatType.HEALTH);
         if(health <= 0) health = 100;
 
-        // SPEED FIX: Default MUST start at 100, not 0
         double speed = SkyblockProfileApi.getBaseStat(player, SkyblockStatsApi.StatType.SPEED);
         if(speed <= 0) speed = 100; 
 
@@ -20,7 +19,7 @@ public class SkyblockStatHandler {
         double str = SkyblockProfileApi.getBaseStat(player, SkyblockStatsApi.StatType.STRENGTH);
         double damage = SkyblockProfileApi.getBaseStat(player, SkyblockStatsApi.StatType.DAMAGE);
 
-        // Add Item Stats
+        // 2. Add Item Stats
         for (ItemStack stack : player.getInventory().armor) {
             health += SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.HEALTH);
             defense += SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.DEFENSE);
@@ -35,9 +34,15 @@ public class SkyblockStatHandler {
         health += SkyblockStatsApi.getStat(hand, SkyblockStatsApi.StatType.HEALTH);
         speed += SkyblockStatsApi.getStat(hand, SkyblockStatsApi.StatType.SPEED);
 
-        // Apply Vanilla Attributes
+        // 3. Add Skill Bonuses (NEW)
+        health += SkyblockSkillsApi.getSkillStatBonus(player, SkyblockStatsApi.StatType.HEALTH);
+        defense += SkyblockSkillsApi.getSkillStatBonus(player, SkyblockStatsApi.StatType.DEFENSE);
+        str += SkyblockSkillsApi.getSkillStatBonus(player, SkyblockStatsApi.StatType.STRENGTH);
+        // Note: Crit Chance is calculated in CombatMixin directly
+
+        // 4. Apply Vanilla Attributes
         
-        // 1. Health
+        // Health
         EntityAttributeInstance hpAttr = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         double vanillaHp = health / 5.0;
         if (hpAttr.getBaseValue() != vanillaHp) {
@@ -45,20 +50,19 @@ public class SkyblockStatHandler {
             if (player.getHealth() > vanillaHp) player.setHealth((float) vanillaHp);
         }
 
-        // 2. Speed (FIXED)
-        // Formula: 100 Skyblock Speed = 0.1 Vanilla Speed.
+        // Speed
         EntityAttributeInstance spdAttr = player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
         double vanillaSpeed = speed / 1000.0; 
         if (spdAttr.getBaseValue() != vanillaSpeed) {
             spdAttr.setBaseValue(vanillaSpeed);
         }
 
-        // 3. Damage
+        // Damage
         EntityAttributeInstance dmgAttr = player.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE);
         double finalDmg = (5 + damage) * (1 + (str / 100.0));
         dmgAttr.setBaseValue(finalDmg);
 
-        // 4. Armor
+        // Armor
         player.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).setBaseValue(defense / 10.0);
     }
 }
