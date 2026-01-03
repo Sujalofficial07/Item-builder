@@ -15,17 +15,16 @@ public class ModRegistries {
     public static void registerModStuff() {
         ModPackets.registerServerPackets();
         HubProtection.register();
+        SkillListener.register(); // NEW: Listener Registered
 
-        // Register Commands
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ProfileCommands.register(dispatcher);
-            EconomyCommands.register(dispatcher); // NEW: Economy Cmds
+            EconomyCommands.register(dispatcher);
         });
 
-        // Server Loop (Ticks)
         ServerTickEvents.END_WORLD_TICK.register(world -> {
             
-            // 1. CLEANUP DAMAGE INDICATORS
+            // Cleanup Damage Indicators
             List<Entity> toRemove = new ArrayList<>();
             for (Entity entity : world.getEntitiesByType(net.minecraft.entity.EntityType.ARMOR_STAND, e -> true)) {
                 if (entity.getCommandTags().contains("damage_indicator")) {
@@ -35,9 +34,8 @@ public class ModRegistries {
             }
             toRemove.forEach(Entity::discard);
 
-            // 2. Player Updates (Stats & Scoreboard)
+            // Player Updates
             world.getPlayers().forEach(player -> {
-                // Auto Convert Logic
                 for (int i = 0; i < player.getInventory().size(); i++) {
                     ItemStack stack = player.getInventory().getStack(i);
                     if (!stack.isEmpty()) {
@@ -45,12 +43,8 @@ public class ModRegistries {
                     }
                 }
                 
-                // Real Stats Update
                 SkyblockStatHandler.updatePlayerStats(player);
                 
-                // NEW: Scoreboard Update
-                // Performance Note: Har tick update karne se flickering ho sakti hai.
-                // Ideal: Har 20 ticks (1 sec) update karo.
                 if (world.getTime() % 20 == 0) {
                     SkyblockScoreboardHandler.updateScoreboard(player);
                 }
