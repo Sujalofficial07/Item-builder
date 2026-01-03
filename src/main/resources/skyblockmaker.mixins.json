@@ -3,7 +3,9 @@
   "package": "com.sujal.skyblockmaker.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "EntityDataMixin"
+    "EntityDataMixin",
+    "SkyblockCombatMixin",
+    "HideVanillaHeartsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
