@@ -12,65 +12,73 @@ import net.minecraft.text.Text;
 
 public class ItemBuilderScreen extends Screen {
 
-    private TextFieldWidget nameField;
-    private TextFieldWidget strengthField;
-    private TextFieldWidget defenseField; // New Field
-    private TextFieldWidget rarityField;
+    private TextFieldWidget nameField, rarityField;
+    private TextFieldWidget strField, defField, hpField, intelField, ccField, cdField;
 
     public ItemBuilderScreen() {
-        super(Text.literal("Item Builder"));
+        super(Text.literal("Advanced Builder"));
     }
 
     @Override
     protected void init() {
-        int centerX = this.width / 2;
-        int y = 40;
+        int x = this.width / 2 - 100; // Center X
+        int y = 20; // Start Y
 
-        // Name
-        addDrawableChild(nameField = new TextFieldWidget(textRenderer, centerX - 100, y, 200, 20, Text.literal("Name")));
-        nameField.setPlaceholder(Text.literal("Item Name"));
+        // Name & Rarity
+        addInput(nameField = new TextFieldWidget(textRenderer, x, y, 200, 16, Text.literal("Name")), "Item Name");
+        addInput(rarityField = new TextFieldWidget(textRenderer, x, y + 20, 200, 16, Text.literal("Rarity")), "Rarity (COMMON, RARE, LEGENDARY)");
+        
+        y += 45; // Spacing
 
-        // Strength
-        addDrawableChild(strengthField = new TextFieldWidget(textRenderer, centerX - 100, y + 25, 200, 20, Text.literal("Strength")));
-        strengthField.setPlaceholder(Text.literal("Strength Amount"));
+        // Stats Row 1
+        addInput(strField = new TextFieldWidget(textRenderer, x, y, 95, 16, Text.literal("Str")), "Strength");
+        addInput(defField = new TextFieldWidget(textRenderer, x + 105, y, 95, 16, Text.literal("Def")), "Defense");
 
-        // Defense (New)
-        addDrawableChild(defenseField = new TextFieldWidget(textRenderer, centerX - 100, y + 50, 200, 20, Text.literal("Defense")));
-        defenseField.setPlaceholder(Text.literal("Defense Amount"));
+        // Stats Row 2
+        addInput(hpField = new TextFieldWidget(textRenderer, x, y + 20, 95, 16, Text.literal("HP")), "Health");
+        addInput(intelField = new TextFieldWidget(textRenderer, x + 105, y + 20, 95, 16, Text.literal("Intel")), "Intelligence");
 
-        // Rarity
-        addDrawableChild(rarityField = new TextFieldWidget(textRenderer, centerX - 100, y + 75, 200, 20, Text.literal("Rarity")));
-        rarityField.setPlaceholder(Text.literal("Rarity (COMMON/RARE)"));
+        // Stats Row 3
+        addInput(ccField = new TextFieldWidget(textRenderer, x, y + 40, 95, 16, Text.literal("CC")), "Crit Chance %");
+        addInput(cdField = new TextFieldWidget(textRenderer, x + 105, y + 40, 95, 16, Text.literal("CD")), "Crit Dmg %");
 
-        // Button
-        addDrawableChild(ButtonWidget.builder(Text.literal("Create Armor"), button -> sendCreatePacket())
-                .dimensions(centerX - 50, y + 110, 100, 20)
-                .build());
+        // Create Button
+        addDrawableChild(ButtonWidget.builder(Text.literal("Create Advanced Item"), button -> sendPacket())
+                .dimensions(x + 50, y + 70, 100, 20).build());
     }
 
-    private void sendCreatePacket() {
-        String name = nameField.getText();
-        String rarity = rarityField.getText();
-        double strength = 0;
-        double defense = 0;
-        
-        try { strength = Double.parseDouble(strengthField.getText()); } catch (Exception ignored) {}
-        try { defense = Double.parseDouble(defenseField.getText()); } catch (Exception ignored) {}
+    private void addInput(TextFieldWidget widget, String placeholder) {
+        widget.setPlaceholder(Text.literal(placeholder));
+        this.addDrawableChild(widget);
+    }
 
+    private void sendPacket() {
         PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeString(name);
-        buf.writeDouble(strength);
-        buf.writeDouble(defense); // Defense bhejo
-        buf.writeString(rarity);
+        
+        // Strings
+        buf.writeString(nameField.getText());
+        buf.writeString(rarityField.getText());
+
+        // Doubles (Safe Parsing)
+        buf.writeDouble(parse(strField));
+        buf.writeDouble(parse(defField));
+        buf.writeDouble(parse(hpField));
+        buf.writeDouble(parse(intelField));
+        buf.writeDouble(parse(ccField));
+        buf.writeDouble(parse(cdField));
 
         ClientPlayNetworking.send(ModPackets.ITEM_CREATE_PACKET, buf);
         this.close();
     }
 
+    private double parse(TextFieldWidget field) {
+        try { return Double.parseDouble(field.getText()); } catch (Exception e) { return 0; }
+    }
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context);
-        context.drawCenteredTextWithShadow(textRenderer, this.title, width / 2, 15, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, "Skyblock Item Creator", width / 2, 5, 0xFFFFFF);
         super.render(context, mouseX, mouseY, delta);
     }
 }
