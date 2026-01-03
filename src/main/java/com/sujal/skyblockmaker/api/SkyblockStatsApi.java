@@ -9,10 +9,11 @@ public class SkyblockStatsApi {
     public enum StatType {
         STRENGTH, 
         DAMAGE, 
-        CRIT_CHANCE, 
         HEALTH, 
         DEFENSE,
-        INTELLIGENCE // HUD ke liye zaruri hai
+        INTELLIGENCE,
+        CRIT_CHANCE,  // New
+        CRIT_DAMAGE   // New
     }
 
     public static void setStat(ItemStack stack, StatType stat, double value) {
@@ -32,7 +33,7 @@ public class SkyblockStatsApi {
     public static void setRarity(ItemStack stack, String rarity) {
         NbtCompound nbt = stack.getOrCreateNbt();
         NbtCompound data = nbt.contains(NBT_KEY) ? nbt.getCompound(NBT_KEY) : new NbtCompound();
-        data.putString("Rarity", rarity);
+        data.putString("Rarity", rarity.toUpperCase()); // Hamesha Capital mein save hoga
         nbt.put(NBT_KEY, data);
     }
 }
