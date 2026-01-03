@@ -11,15 +11,16 @@ import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import java.util.Set; // Set import karna mat bhoolna
 
 public class SkyblockMakerClient implements ClientModInitializer {
 
     private static boolean shouldOpenGui = false;
-    private static final String REQUIRED_TAG = "sb_admin";
+    // private static final String REQUIRED_TAG = "sb_admin"; // Abhi iski zarurat nahi
 
     @Override
     public void onInitializeClient() {
-        System.out.println("SkyblockMaker Client & HUD Loading...");
+        System.out.println("SkyblockMaker Client Loaded (Lock Removed for Testing)...");
 
         // 1. HUD Register
         HudRenderCallback.EVENT.register(new SkyblockHudOverlay());
@@ -29,14 +30,14 @@ public class SkyblockMakerClient implements ClientModInitializer {
             dispatcher.register(ClientCommandManager.literal("sbbuilder")
                 .executes(context -> {
                     
-                    // === FIX IS HERE (getScoreboardTags -> getCommandTags) ===
-                    if (!context.getSource().getPlayer().getCommandTags().contains(REQUIRED_TAG)) {
-                        context.getSource().sendError(Text.literal("❌ Access Denied: Missing '" + REQUIRED_TAG + "' tag."));
-                        return 0;
-                    }
+                    // === DEBUGGING (Console mein tags check karne ke liye) ===
+                    Set<String> tags = context.getSource().getPlayer().getCommandTags();
+                    System.out.println("Current Player Tags: " + tags); 
 
-                    // Schedule GUI
-                    System.out.println("Access Granted! Scheduling GUI...");
+                    // === LOCK REMOVED (Direct Access) ===
+                    // Humne 'if' condition hata di hai taaki GUI har haal mein khule.
+                    
+                    System.out.println("Access Granted (Bypassed)! Scheduling GUI...");
                     context.getSource().sendFeedback(Text.literal("Opening Builder..."));
                     shouldOpenGui = true; 
                     return 1;
