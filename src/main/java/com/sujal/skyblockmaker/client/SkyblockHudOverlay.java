@@ -30,19 +30,30 @@ public class SkyblockHudOverlay implements HudRenderCallback {
         int currentMana = maxMana; 
 
         // Text Creation
-        String healthText = "❤ " + currentHp + "/" + maxHp;
-        String defenseText = "❈ " + defense;
-        String manaText = "✎ " + currentMana + "/" + maxMana;
-
         // Positioning
+        // ... imports same ...
+
+// Inside onHudRender:
+        
         int width = client.getWindow().getScaledWidth();
         int height = client.getWindow().getScaledHeight();
-        int yPos = height - 40; 
+        
+        // POSITION UPDATE: Height - 60 (Thoda upar taki hotbar se na takraye)
+        int yPos = height - 60; 
 
-        // Draw
-        context.drawTextWithShadow(textRenderer, healthText, width / 2 - 90, yPos, Formatting.RED.getColorValue());
+        // Text Creation (Colors are already handled in drawing)
+        String healthText = "❤ " + currentHp + "/" + maxHp;
+        String defenseText = "❈ " + defense + " Defense";
+        String manaText = "✎ " + currentMana + "/" + maxMana + " Mana";
+
+        // Draw Health (RED)
+        context.drawTextWithShadow(textRenderer, healthText, width / 2 - 120, yPos, 0xFF5555);
+
+        // Draw Defense (GREEN)
         int defenseWidth = textRenderer.getWidth(defenseText);
-        context.drawTextWithShadow(textRenderer, defenseText, width / 2 - (defenseWidth / 2), yPos, Formatting.GREEN.getColorValue());
-        context.drawTextWithShadow(textRenderer, manaText, width / 2 + 50, yPos, Formatting.AQUA.getColorValue());
+        context.drawTextWithShadow(textRenderer, defenseText, width / 2 - (defenseWidth / 2), yPos, 0x55FF55);
+
+        // Draw Mana (AQUA)
+        context.drawTextWithShadow(textRenderer, manaText, width / 2 + 60, yPos, 0x55FFFF);
     }
 }
