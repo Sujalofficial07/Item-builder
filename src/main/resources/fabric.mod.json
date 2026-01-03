@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "skyblockmaker",
+  "version": "1.0.0",
+  "name": "Skyblock Maker",
+  "description": "Hypixel Skyblock Item Builder & HUD Mod",
+  "authors": [
+    "Sujal"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/skyblockmaker/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.sujal.skyblockmaker.SkyblockMakerMod"
+    ],
+    "client": [
+      "com.sujal.skyblockmaker.SkyblockMakerClient"
+    ]
+  },
+  "mixins": [
+    "skyblockmaker.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.21",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
+}
