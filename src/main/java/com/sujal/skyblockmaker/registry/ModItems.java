@@ -1,7 +1,7 @@
 package com.sujal.skyblockmaker.registry;
 
 import com.sujal.skyblockmaker.api.SkyblockItem;
-import com.sujal.skyblockmaker.items.Hyperion; // Import Item Classes
+import com.sujal.skyblockmaker.items.Hyperion;
 import com.sujal.skyblockmaker.items.Terminator;
 import net.minecraft.item.Items;
 
@@ -12,15 +12,14 @@ import java.util.stream.Collectors;
 
 public class ModItems {
     
-    // Map to store ID -> Item Logic
     private static final Map<String, SkyblockItem> REGISTRY = new HashMap<>();
 
     public static void registerItems() {
-        // Register Custom Class Items
+        // Register Complex Items
         register(new Hyperion());
         register(new Terminator());
 
-        // Register Simple Items (No special class needed, just data)
+        // Register Simple Items (Now Works!)
         SkyblockItem enchCobble = new SkyblockItem("ENCHANTED_COBBLESTONE", "Enchanted Cobblestone", Items.COBBLESTONE, "COMMON", "MATERIAL");
         enchCobble.isEnchanted = true;
         register(enchCobble);
