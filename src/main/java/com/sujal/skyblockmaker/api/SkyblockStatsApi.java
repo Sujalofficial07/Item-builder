@@ -1,7 +1,5 @@
 package com.sujal.skyblockmaker.api;
 
-import com.sujal.skyblockmaker.util.IEntityDataSaver;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 
@@ -9,12 +7,15 @@ public class SkyblockStatsApi {
     public static final String NBT_KEY = "SB_Stats";
 
     public enum StatType {
-        // Core Stats
-        HEALTH, DEFENSE, STRENGTH, SPEED, CRIT_CHANCE, CRIT_DAMAGE, INTELLIGENCE,
+        // Core Stats (Fixed: Added DAMAGE & MANA_COST)
+        DAMAGE, HEALTH, DEFENSE, STRENGTH, SPEED, CRIT_CHANCE, CRIT_DAMAGE, INTELLIGENCE,
+        
         // Advanced Stats
-        ATTACK_SPEED, FEROCITY, MAGIC_FIND, ABILITY_DAMAGE, SEA_CREATURE_CHANCE,
+        ATTACK_SPEED, FEROCITY, MAGIC_FIND, ABILITY_DAMAGE, SEA_CREATURE_CHANCE, MANA_COST,
+        
         // Mining/Misc
         MINING_SPEED, MINING_FORTUNE, FARMING_FORTUNE, FORAGING_FORTUNE,
+        
         // Meta
         GEAR_SCORE
     }
@@ -36,7 +37,6 @@ public class SkyblockStatsApi {
         nbt.put(NBT_KEY, stats);
     }
 
-    // String Data (Lore, Name, etc.)
     public static String getString(ItemStack stack, String key) {
         if (stack == null || !stack.hasNbt()) return "";
         NbtCompound nbt = stack.getNbt();
