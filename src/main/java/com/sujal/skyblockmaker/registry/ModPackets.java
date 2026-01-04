@@ -18,7 +18,10 @@ public class ModPackets {
             String type = buf.readString();
             String name = buf.readString();
             String rarity = buf.readString();
-            String lore = buf.readString();
+            String reforge = buf.readString();
+            String stars = buf.readString();
+            boolean isDungeon = buf.readBoolean();
+            String enchants = buf.readString();
             
             String abName = buf.readString();
             String abDesc = buf.readString();
@@ -29,46 +32,45 @@ public class ModPackets {
             double cc = buf.readDouble();
             double cd = buf.readDouble();
             double atks = buf.readDouble();
-            
             double hp = buf.readDouble();
             double def = buf.readDouble();
             double spd = buf.readDouble();
             double intel = buf.readDouble();
-            
             double fero = buf.readDouble();
             double magic = buf.readDouble();
-            double gs = buf.readDouble(); // Gear Score
+            double gs = buf.readDouble();
 
             server.execute(() -> {
                 ItemStack stack;
-                if (type.equals("SWORD")) stack = new ItemStack(Items.DIAMOND_SWORD);
+                if (type.equals("SWORD") || type.equals("HYPERION")) stack = new ItemStack(Items.IRON_SWORD); // Hyperion Base
                 else if (type.equals("BOW")) stack = new ItemStack(Items.BOW);
-                else if (type.equals("HYPERION")) stack = new ItemStack(Items.IRON_SWORD);
                 else if (type.equals("ARMOR")) stack = new ItemStack(Items.DIAMOND_CHESTPLATE);
                 else stack = new ItemStack(Items.STICK);
 
-                Formatting color = getRarityColor(rarity);
-                stack.setCustomName(Text.literal(name).formatted(color));
+                // We only set the name here, Tooltip registry handles the rest
+                stack.setCustomName(Text.literal(name));
 
+                // Stats
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DAMAGE, dmg);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.STRENGTH, str);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.CRIT_CHANCE, cc);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.CRIT_DAMAGE, cd);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.ATTACK_SPEED, atks);
-                
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.HEALTH, hp);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DEFENSE, def);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.SPEED, spd);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.INTELLIGENCE, intel);
-                
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.FEROCITY, fero);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MAGIC_FIND, magic);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.GEAR_SCORE, gs);
-                
                 if(abCost > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MANA_COST, abCost);
 
+                // Strings
                 SkyblockStatsApi.setString(stack, "Rarity", rarity);
-                SkyblockStatsApi.setString(stack, "Lore", lore);
+                SkyblockStatsApi.setString(stack, "Reforge", reforge);
+                SkyblockStatsApi.setString(stack, "Stars", stars);
+                SkyblockStatsApi.setString(stack, "Enchants", enchants);
+                SkyblockStatsApi.setString(stack, "IsDungeon", isDungeon ? "true" : "false");
                 SkyblockStatsApi.setString(stack, "AbilityName", abName);
                 SkyblockStatsApi.setString(stack, "AbilityDesc", abDesc);
 
