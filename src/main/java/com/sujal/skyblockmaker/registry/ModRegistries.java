@@ -1,50 +1,59 @@
 package com.sujal.skyblockmaker.registry;
 
-import com.sujal.skyblockmaker.api.SkyblockItem;
-import com.sujal.skyblockmaker.items.AspectOfTheEnd; // New
-import com.sujal.skyblockmaker.items.GiantSword; // New
-import com.sujal.skyblockmaker.items.Hyperion; // Custom Class
-import net.minecraft.item.Items;
+import com.sujal.skyblockmaker.api.SkyblockItemDefaults;
+import com.sujal.skyblockmaker.api.SkyblockStatHandler;
+import com.sujal.skyblockmaker.api.SkyblockScoreboardHandler; // Assuming this exists from previous steps
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.Entity;
+import net.minecraft.item.ItemStack;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-public class ModItems {
-    
-    private static final Map<String, SkyblockItem> REGISTRY = new HashMap<>();
+public class ModRegistries {
 
-    public static void registerItems() {
-        // Clear previous to avoid dupes on reload
-        REGISTRY.clear();
-
-        // 1. Custom Ability Items (Inki alag files hain)
-        register(new Hyperion());
-        register(new AspectOfTheEnd());
-        register(new GiantSword());
-
-        // 2. Simple Items (Direct registration)
-        SkyblockItem enchCobble = new SkyblockItem("ENCHANTED_COBBLESTONE", "Enchanted Cobblestone", Items.COBBLESTONE, "COMMON", "MATERIAL");
-        enchCobble.isEnchanted = true;
-        register(enchCobble);
+    public static void registerModStuff() {
+        ModPackets.registerServerPackets();
         
-        SkyblockItem enchDiamond = new SkyblockItem("ENCHANTED_DIAMOND", "Enchanted Diamond", Items.DIAMOND, "RARE", "MATERIAL");
-        enchDiamond.isEnchanted = true;
-        register(enchDiamond);
-    }
+        // Register Items and Listeners
+        ModItems.registerItems(); 
+        AbilityListener.register();
+        SkillListener.register();
+        HubProtection.register();
 
-    private static void register(SkyblockItem item) {
-        REGISTRY.put(item.id, item);
-    }
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            ProfileCommands.register(dispatcher);
+            EconomyCommands.register(dispatcher);
+        });
 
-    public static SkyblockItem get(String id) {
-        return REGISTRY.get(id);
-    }
+        ServerTickEvents.END_WORLD_TICK.register(world -> {
+            
+            // Cleanup Damage Indicators
+            List<Entity> toRemove = new ArrayList<>();
+            for (Entity entity : world.getEntitiesByType(net.minecraft.entity.EntityType.ARMOR_STAND, e -> true)) {
+                if (entity.getCommandTags().contains("damage_indicator")) {
+                    entity.setPosition(entity.getPos().add(0, 0.05, 0));
+                    if (entity.age > 20) toRemove.add(entity);
+                }
+            }
+            toRemove.forEach(Entity::discard);
 
-    public static List<SkyblockItem> getByCategory(String category) {
-        return REGISTRY.values().stream()
-                .filter(i -> i.type.equals(category))
-                .collect(Collectors.toList());
+            // Player Updates
+            world.getPlayers().forEach(player -> {
+                for (int i = 0; i < player.getInventory().size(); i++) {
+                    ItemStack stack = player.getInventory().getStack(i);
+                    if (!stack.isEmpty()) {
+                        SkyblockItemDefaults.convertToSkyblockItem(stack);
+                    }
+                }
+                
+                SkyblockStatHandler.updatePlayerStats(player);
+                
+                if (world.getTime() % 20 == 0) {
+                    SkyblockScoreboardHandler.updateScoreboard(player);
+                }
+            });
+        });
     }
 }
