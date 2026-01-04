@@ -16,10 +16,11 @@ public class ItemBuilderScreen extends Screen {
     private final String itemType;
     private final Item baseItem;
     
+    // Inputs
     private TextFieldWidget nameF, loreF;
     private TextFieldWidget dmgF, strF, ccF, cdF, atksF; 
     private TextFieldWidget hpF, defF, spdF, intelF;
-    private TextFieldWidget feroF, magicF;
+    private TextFieldWidget feroF, magicF, gearScoreF; // Added Gear Score
     private TextFieldWidget abNameF, abDescF, abCostF;
 
     private String currentRarity = "LEGENDARY";
@@ -37,7 +38,7 @@ public class ItemBuilderScreen extends Screen {
         int x = this.width / 2 - 160;
         int y = 20;
 
-        // Rarity Cycle Button
+        // Rarity
         rarityBtn = ButtonWidget.builder(Text.literal(currentRarity), b -> {
             for(int i=0; i<rarities.length; i++) {
                 if(rarities[i].equals(currentRarity)) {
@@ -52,7 +53,7 @@ public class ItemBuilderScreen extends Screen {
         addInput(nameF = createField(x, y, 210, "Item Name (e.g. Hyperion)"));
         y += 25;
 
-        // Row 1: Offensive
+        // Stats Row 1 (Offense)
         addInput(dmgF = createField(x, y, 60, "Damage"));
         addInput(strF = createField(x + 65, y, 60, "Strength"));
         addInput(ccF = createField(x + 130, y, 60, "Crit %"));
@@ -60,7 +61,7 @@ public class ItemBuilderScreen extends Screen {
         addInput(atksF = createField(x + 260, y, 60, "Atk Spd"));
         y += 25;
 
-        // Row 2: Defensive & Misc
+        // Stats Row 2 (Defense + Misc)
         addInput(hpF = createField(x, y, 60, "Health"));
         addInput(defF = createField(x + 65, y, 60, "Defense"));
         addInput(spdF = createField(x + 130, y, 60, "Speed"));
@@ -68,20 +69,24 @@ public class ItemBuilderScreen extends Screen {
         addInput(feroF = createField(x + 260, y, 60, "Ferocity"));
         y += 25;
 
-        // Row 3: Ability
+        // Stats Row 3 (Extra)
+        addInput(magicF = createField(x, y, 70, "Magic Find"));
+        addInput(gearScoreF = createField(x + 80, y, 70, "Gear Score")); // NEW
+        y += 25;
+
+        // Ability
         addInput(abNameF = createField(x, y, 150, "Ability Name (e.g. Wither Impact)"));
         addInput(abCostF = createField(x + 160, y, 80, "Mana Cost"));
-        addInput(magicF = createField(x + 250, y, 70, "Magic Find"));
         y += 25;
         
         addInput(abDescF = createField(x, y, 320, "Ability Description"));
         y += 25;
 
-        // Row 4: Lore
+        // Lore
         addInput(loreF = createField(x, y, 320, "Extra Lore / Text"));
         y += 30;
 
-        // Create Button
+        // Create
         addDrawableChild(ButtonWidget.builder(Text.literal("CONSTRUCT ITEM"), b -> sendPacket())
                 .dimensions(this.width / 2 - 60, y, 120, 20).build());
     }
@@ -118,6 +123,7 @@ public class ItemBuilderScreen extends Screen {
         
         buf.writeDouble(parse(feroF));
         buf.writeDouble(parse(magicF));
+        buf.writeDouble(parse(gearScoreF)); // New
 
         ClientPlayNetworking.send(ModPackets.ITEM_CREATE_PACKET, buf);
         this.close();
