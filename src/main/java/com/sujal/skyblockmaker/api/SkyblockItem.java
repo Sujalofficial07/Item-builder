@@ -1,30 +1,31 @@
 package com.sujal.skyblockmaker.api;
 
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.world.World;
 
-public class SkyblockItem {
+public abstract class SkyblockItem {
+    
+    // Basic Info
     public String id;
     public String displayName;
     public Item material;
     public String rarity;
-    public String type; // "SWORD", "BOW", "MATERIAL", "DUNGEON_ITEM"
+    public String type; // SWORD, BOW, MATERIAL
     
-    // Stats
-    public double damage, strength, critChance, critDamage, attackSpeed;
-    public double health, defense, speed, intelligence, ferocity, magicFind;
+    // Stats (Default 0)
+    public double damage = 0, strength = 0, critChance = 0, critDamage = 0, attackSpeed = 0;
+    public double health = 0, defense = 0, speed = 0, intelligence = 0, ferocity = 0, magicFind = 0;
     
-    // Ability
+    // Ability Info
     public String abilityName = "";
     public String abilityDesc = "";
     public double manaCost = 0;
-    
-    // Misc
+    public int cooldownTicks = 0;
+
     public boolean isDungeon = false;
-    public boolean isEnchanted = false; // For Enchanted Cobblestone glow
+    public boolean isEnchanted = false;
 
     public SkyblockItem(String id, String name, Item mat, String rarity, String type) {
         this.id = id;
@@ -34,10 +35,18 @@ public class SkyblockItem {
         this.type = type;
     }
 
+    // Har item apni marzi se isko override karega
+    public void onAbility(World world, PlayerEntity player, ItemStack stack) {
+        // Default: Do nothing
+    }
+
     public ItemStack createStack() {
         ItemStack stack = new ItemStack(material);
         
-        // Basic NBT
+        // Save ID for lookup
+        SkyblockStatsApi.setString(stack, "SkyblockID", id);
+        
+        // Save Stats
         SkyblockStatsApi.setString(stack, "Rarity", rarity);
         SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DAMAGE, damage);
         SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.STRENGTH, strength);
@@ -57,8 +66,8 @@ public class SkyblockItem {
             if(manaCost > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MANA_COST, manaCost);
         }
 
-        if(isEnchanted) stack.addHideFlag(ItemStack.TooltipSection.ENCHANTMENTS); 
-        // Note: Real glow needs an enchantment added, managed in ModItems logic usually
+        if(isEnchanted) stack.addHideFlag(ItemStack.TooltipSection.ENCHANTMENTS);
+        if(isDungeon) SkyblockStatsApi.setString(stack, "IsDungeon", "true");
         
         return stack;
     }
