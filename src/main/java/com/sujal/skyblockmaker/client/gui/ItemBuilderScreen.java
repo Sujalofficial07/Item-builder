@@ -7,108 +7,139 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class ItemBuilderScreen extends Screen {
 
-    private TextFieldWidget nameF, reforgeF, rarityF, loreF, abNameF, abDescF;
-    private TextFieldWidget dmgF, strF, ccF, cdF, hpF, defF, spdF, intelF;
+    private final String itemType;
+    private final Item baseItem;
     
-    // New: Item Type Selector
-    private String currentType = "SWORD";
-    private final List<String> itemTypes = Arrays.asList("SWORD", "BOW", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS", "PICKAXE", "AXE", "SHOVEL", "HOE");
-    private ButtonWidget typeButton;
+    // Inputs
+    private TextFieldWidget nameF, loreF;
+    private TextFieldWidget dmgF, strF, ccF, cdF, atksF; // Offensive
+    private TextFieldWidget hpF, defF, spdF, intelF;     // Defensive
+    private TextFieldWidget feroF, magicF;               // Misc
+    private TextFieldWidget abNameF, abDescF, abCostF;   // Ability
 
-    public ItemBuilderScreen() { super(Text.literal("Hypixel Item Architect")); }
+    // Cycles
+    private String currentRarity = "LEGENDARY";
+    private final String[] rarities = {"COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC", "DIVINE", "SPECIAL"};
+    private ButtonWidget rarityBtn;
+
+    public ItemBuilderScreen(String itemType, Item baseItem) {
+        super(Text.literal("Item Architect"));
+        this.itemType = itemType;
+        this.baseItem = baseItem;
+    }
 
     @Override
     protected void init() {
-        int x = this.width / 2 - 160; // Thoda aur wide kiya
+        int x = this.width / 2 - 160;
         int y = 20;
 
-        // === ROW 1: Type | Rarity | Reforge ===
-        // Item Type Cycle Button
-        typeButton = ButtonWidget.builder(Text.literal("Type: " + currentType), button -> {
-            int index = itemTypes.indexOf(currentType);
-            currentType = itemTypes.get((index + 1) % itemTypes.size());
-            button.setMessage(Text.literal("Type: " + currentType));
-        }).dimensions(x, y, 100, 18).build();
-        addDrawableChild(typeButton);
+        // --- HEADER ---
+        // Rarity Button
+        rarityBtn = ButtonWidget.builder(Text.literal(currentRarity), b -> {
+            // Cycle Rarity
+            for(int i=0; i<rarities.length; i++) {
+                if(rarities[i].equals(currentRarity)) {
+                    currentRarity = rarities[(i+1)%rarities.length];
+                    b.setMessage(Text.literal(currentRarity));
+                    break;
+                }
+            }
+        }).dimensions(x + 220, y, 100, 20).build();
+        addDrawableChild(rarityBtn);
 
-        addInput(rarityF = createField(x + 105, y, 100, "Rarity (LEGENDARY)"));
-        addInput(reforgeF = createField(x + 210, y, 110, "Prefix (Spicy)"));
+        addInput(nameF = createField(x, y, 210, "Item Name (e.g. Hyperion)"));
         y += 25;
 
-        // === ROW 2: Identity ===
-        addInput(nameF = createField(x, y, 320, "Item Name"));
+        // --- ROW 1: OFFENSIVE ---
+        addInput(dmgF = createField(x, y, 60, "Dmg"));
+        addInput(strF = createField(x + 65, y, 60, "Str"));
+        addInput(ccF = createField(x + 130, y, 60, "CC %"));
+        addInput(cdF = createField(x + 195, y, 60, "CD %"));
+        addInput(atksF = createField(x + 260, y, 60, "Atk Spd"));
         y += 25;
 
-        // === ROW 3: Stats (Compact Grid) ===
-        // Offensive
-        addInput(dmgF = createField(x, y, 75, "Damage"));
-        addInput(strF = createField(x + 80, y, 75, "Strength"));
-        addInput(ccF = createField(x + 160, y, 75, "Crit %"));
-        addInput(cdF = createField(x + 240, y, 80, "Crit Dmg %"));
+        // --- ROW 2: DEFENSIVE ---
+        addInput(hpF = createField(x, y, 60, "HP"));
+        addInput(defF = createField(x + 65, y, 60, "Def"));
+        addInput(spdF = createField(x + 130, y, 60, "Spd"));
+        addInput(intelF = createField(x + 195, y, 60, "Intel"));
+        addInput(feroF = createField(x + 260, y, 60, "Fero")); // Ferocity
         y += 25;
 
-        // Defensive
-        addInput(hpF = createField(x, y, 75, "Health"));
-        addInput(defF = createField(x + 80, y, 75, "Defense"));
-        addInput(spdF = createField(x + 160, y, 75, "Speed"));
-        addInput(intelF = createField(x + 240, y, 80, "Intel"));
+        // --- ROW 3: ABILITY ---
+        addInput(abNameF = createField(x, y, 150, "Ability Name (e.g. Wither Impact)"));
+        addInput(abCostF = createField(x + 160, y, 80, "Mana Cost"));
+        addInput(magicF = createField(x + 250, y, 70, "M. Find"));
+        y += 25;
+        
+        addInput(abDescF = createField(x, y, 320, "Ability Description (Teleport 10 blocks...)"));
+        y += 25;
+
+        // --- ROW 4: EXTRA LORE ---
+        addInput(loreF = createField(x, y, 320, "Extra Lore / Flavour Text"));
         y += 30;
 
-        // === ROW 4: Description ===
-        addInput(loreF = createField(x, y, 320, "Lore / Description"));
-        y += 25;
-
-        // === ROW 5: Ability ===
-        addInput(abNameF = createField(x, y, 320, "Ability Name"));
-        y += 25;
-        addInput(abDescF = createField(x, y, 320, "Ability Description"));
-        y += 30;
-
-        // === CREATE BUTTON ===
-        addDrawableChild(ButtonWidget.builder(Text.literal("CREATE ITEM"), b -> sendPacket())
+        // --- CREATE BUTTON ---
+        addDrawableChild(ButtonWidget.builder(Text.literal("§lCONSTRUCT ITEM"), b -> sendPacket())
                 .dimensions(this.width / 2 - 60, y, 120, 20).build());
     }
 
     private TextFieldWidget createField(int x, int y, int w, String placeholder) {
         TextFieldWidget f = new TextFieldWidget(textRenderer, x, y, w, 18, Text.of(""));
-        f.setPlaceholder(Text.literal(placeholder));
+        f.setPlaceholder(Text.literal("§7" + placeholder));
         return f;
     }
     private void addInput(TextFieldWidget w) { this.addDrawableChild(w); }
 
     private void sendPacket() {
         PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeString(currentType); // Send Selected Type
+        
+        // Identity
+        buf.writeString(itemType); // SWORD, BOW, etc
         buf.writeString(nameF.getText());
-        buf.writeString(reforgeF.getText());
-        buf.writeString(rarityF.getText());
+        buf.writeString(currentRarity);
         buf.writeString(loreF.getText());
+        
+        // Ability
         buf.writeString(abNameF.getText());
         buf.writeString(abDescF.getText());
+        buf.writeDouble(parse(abCostF)); // Mana Cost
 
+        // Stats
         buf.writeDouble(parse(dmgF));
         buf.writeDouble(parse(strF));
         buf.writeDouble(parse(ccF));
         buf.writeDouble(parse(cdF));
+        buf.writeDouble(parse(atksF));
+        
         buf.writeDouble(parse(hpF));
         buf.writeDouble(parse(defF));
         buf.writeDouble(parse(spdF));
         buf.writeDouble(parse(intelF));
+        
+        buf.writeDouble(parse(feroF));
+        buf.writeDouble(parse(magicF));
 
         ClientPlayNetworking.send(ModPackets.ITEM_CREATE_PACKET, buf);
         this.close();
     }
 
-    private double parse(TextFieldWidget f) { try { return Double.parseDouble(f.getText()); } catch(Exception e){ return 0; } }
+    private double parse(TextFieldWidget f) { 
+        try { return Double.parseDouble(f.getText()); } catch(Exception e){ return 0; } 
+    }
 
     @Override
-    public void render(DrawContext c, int mx, int my, float d) { renderBackground(c); super.render(c, mx, my, d); }
+    public void render(DrawContext c, int mx, int my, float d) { 
+        renderBackground(c); 
+        c.drawCenteredTextWithShadow(textRenderer, "Item Architect", this.width/2, 10, 0xFFFFFF);
+        super.render(c, mx, my, d); 
+    }
 }
