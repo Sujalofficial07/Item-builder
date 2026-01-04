@@ -22,7 +22,7 @@ public class SkillDetailScreen extends Screen {
     private int guiLeft, guiTop;
 
     public SkillDetailScreen(SkyblockSkillsApi.Skill skill) {
-        super(Text.literal(skill.name() + " Skill"));
+        super(Text.literal(skill.name()));
         this.skill = skill;
     }
 
@@ -36,55 +36,96 @@ public class SkillDetailScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.renderBackground(context);
         context.drawTexture(TEXTURE, guiLeft, guiTop, 0, 0, guiWidth, guiHeight);
-        context.drawText(textRenderer, capitalize(skill.name()) + " Levels", guiLeft + 8, guiTop + 6, 0x404040, false);
+        context.drawText(textRenderer, capitalize(skill.name()) + " Skill", guiLeft + 8, guiTop + 6, 0x404040, false);
 
         double currentXp = SkyblockSkillsApi.getXp(client.player, skill);
         int currentLevel = SkyblockSkillsApi.getLevelFromXp(currentXp);
 
-        // Draw 3 Rows of levels (Levels 1-27)
-        for (int i = 0; i < 27; i++) {
-            int level = i + 1;
+        // Grid Logic: Hypixel uses a 5-row pattern usually, we will fill rows 0-4
+        int totalSlots = 45; // 9x5
+        
+        for (int i = 0; i < totalSlots; i++) {
+            int level = i + 1; // Level 1 to 45 displayed
             int x = guiLeft + 8 + (i % 9) * 18;
             int y = guiTop + 18 + (i / 9) * 18;
 
             ItemStack stack;
-            if (level <= currentLevel) {
-                stack = new ItemStack(Items.LIME_STAINED_GLASS_PANE); // Unlocked
+            boolean unlocked = level <= currentLevel;
+
+            if (unlocked) {
+                stack = new ItemStack(Items.LIME_STAINED_GLASS_PANE); // Green (Unlocked)
+                stack.setCustomName(Text.literal("§aLevel " + level));
             } else {
-                stack = new ItemStack(Items.RED_STAINED_GLASS_PANE); // Locked
+                stack = new ItemStack(Items.RED_STAINED_GLASS_PANE); // Red (Locked)
+                stack.setCustomName(Text.literal("§cLevel " + level));
+            }
+            
+            // Special Item for milestones (e.g. Diamond every 5 levels)
+            if (level % 5 == 0) {
+                 // You can override stack here if you want items like Diamond for Lvl 5
+                 // stack = new ItemStack(Items.DIAMOND); 
             }
 
             context.drawItem(stack, x, y);
 
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
                 context.fill(x, y, x + 16, y + 16, 0x80FFFFFF);
-                
-                List<Text> tooltip = new ArrayList<>();
-                tooltip.add(Text.literal((level <= currentLevel ? "§a" : "§c") + "Level " + level));
-                tooltip.add(Text.literal(""));
-                tooltip.add(Text.literal("§7Rewards:"));
-                tooltip.add(Text.literal("§e+" + (level * 100) + " Coins"));
-                tooltip.add(Text.literal("§bStat Bonuses")); 
-                tooltip.add(Text.literal(""));
-                tooltip.add(Text.literal(level <= currentLevel ? "§aUNLOCKED" : "§cLOCKED"));
-                
-                context.drawTooltip(textRenderer, tooltip, mouseX, mouseY);
+                renderHypixelTooltip(context, level, unlocked, mouseX, mouseY);
             }
         }
 
-        // Back Button (Row 6, Col 5 - Center)
-        // Slot 49 like main screen
-        int backX = guiLeft + 8 + 4 * 18; // Col 4 (5th slot)
-        int backY = guiTop + 18 + 5 * 18; // Row 5 (6th row)
+        // Back Button (Row 6, Center)
+        int backX = guiLeft + 8 + 4 * 18; 
+        int backY = guiTop + 18 + 5 * 18; 
         context.drawItem(new ItemStack(Items.ARROW), backX, backY);
-        
-        // Manual check for hover on Arrow
+
         if (mouseX >= backX && mouseX < backX + 16 && mouseY >= backY && mouseY < backY + 16) {
-             context.fill(backX, backY, backX + 16, backY + 16, 0x80FFFFFF);
              context.drawTooltip(textRenderer, Text.literal("§eGo Back"), mouseX, mouseY);
         }
 
         super.render(context, mouseX, mouseY, delta);
+    }
+
+    private void renderHypixelTooltip(DrawContext context, int level, boolean unlocked, int mx, int my) {
+        List<Text> tooltip = new ArrayList<>();
+        
+        // Header
+        tooltip.add(Text.literal((unlocked ? "§a" : "§c") + capitalize(skill.name()) + " Level " + toRoman(level)));
+        tooltip.add(Text.literal(""));
+        
+        // Rewards
+        tooltip.add(Text.literal("§7Rewards:"));
+        tooltip.add(Text.literal("  §e" + capitalize(skill.name()) + " " + toRoman(level)));
+        
+        // Dynamic Stat Text
+        String statName = switch(skill) {
+            case COMBAT -> "Crit Chance";
+            case MINING -> "Defense";
+            case FARMING -> "Health";
+            default -> "Stats";
+        };
+        double statVal = switch(skill) {
+            case COMBAT -> 0.5;
+            case MINING -> 1;
+            case FARMING -> 2;
+            default -> 1;
+        };
+        
+        tooltip.add(Text.literal("  §8+" + statVal + " " + statName));
+        tooltip.add(Text.literal("  §e+" + (level < 20 ? 100 : 1000) + " Coins"));
+        tooltip.add(Text.literal(""));
+        
+        // Progress / Status
+        if (unlocked) {
+            tooltip.add(Text.literal("§aUNLOCKED"));
+        } else {
+            tooltip.add(Text.literal("§cLOCKED"));
+            // Calculate XP needed for this specific level
+            double needed = SkyblockSkillsApi.getXpForNextLevel(level-1);
+            tooltip.add(Text.literal("§8Requires " + (int)needed + " XP"));
+        }
+
+        context.drawTooltip(textRenderer, tooltip, mx, my);
     }
 
     @Override
@@ -97,11 +138,19 @@ public class SkillDetailScreen extends Screen {
              client.setScreen(new SkillsScreen()); 
              return true;
         }
-
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     private String capitalize(String str) {
         return str.charAt(0) + str.substring(1).toLowerCase();
+    }
+    
+    // Simple Roman Numeral Converter for that Hypixel feel
+    private String toRoman(int num) {
+        if (num <= 0) return "";
+        String[] roman = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", 
+                          "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"};
+        if (num <= 20) return roman[num-1];
+        return String.valueOf(num);
     }
 }
