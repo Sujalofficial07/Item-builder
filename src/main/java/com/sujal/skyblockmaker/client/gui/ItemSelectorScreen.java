@@ -12,7 +12,6 @@ import net.minecraft.util.Identifier;
 
 public class ItemSelectorScreen extends Screen {
 
-    // Generic 54 slot chest texture
     private static final Identifier TEXTURE = new Identifier("textures/gui/container/generic_54.png");
     private final int guiWidth = 176;
     private final int guiHeight = 222;
@@ -34,26 +33,19 @@ public class ItemSelectorScreen extends Screen {
         context.drawTexture(TEXTURE, guiLeft, guiTop, 0, 0, guiWidth, guiHeight);
         context.drawText(textRenderer, "Select Base Item", guiLeft + 8, guiTop + 6, 0x404040, false);
 
-        // --- DRAW PRESET ITEMS ---
-        // Row 1: Weapons
+        // Presets
         drawItem(context, Items.DIAMOND_SWORD, 10, "§bDiamond Sword", mouseX, mouseY);
         drawItem(context, Items.IRON_SWORD, 11, "§fIron Sword", mouseX, mouseY);
         drawItem(context, Items.BOW, 12, "§aBow", mouseX, mouseY);
         
-        // Row 2: Armor
         drawItem(context, Items.DIAMOND_CHESTPLATE, 19, "§bDiamond Armor", mouseX, mouseY);
         drawItem(context, Items.LEATHER_BOOTS, 20, "§cLeather Armor", mouseX, mouseY);
         
-        // Row 3: Tools & Misc
         drawItem(context, Items.DIAMOND_PICKAXE, 28, "§bPickaxe", mouseX, mouseY);
-        drawItem(context, Items.GOLDEN_HOE, 29, "§6Hoe", mouseX, mouseY);
-        drawItem(context, Items.FISHING_ROD, 30, "§bRod", mouseX, mouseY);
-
-        // HYPERION PRESET (Special Item)
-        // Using Iron Sword icon for now, builder will make it look like Hyperion
+        
+        // Hyperion Preset
         drawItem(context, Items.IRON_SWORD, 16, "§d§lHYPERION PRESET", mouseX, mouseY);
 
-        // Close Button
         drawItem(context, Items.BARRIER, 49, "§cClose", mouseX, mouseY);
 
         super.render(context, mouseX, mouseY, delta);
@@ -73,7 +65,6 @@ public class ItemSelectorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Check clicks and open Builder with specific type
         if (checkClick(10, mouseX, mouseY)) openBuilder("SWORD", Items.DIAMOND_SWORD);
         if (checkClick(11, mouseX, mouseY)) openBuilder("SWORD", Items.IRON_SWORD);
         if (checkClick(12, mouseX, mouseY)) openBuilder("BOW", Items.BOW);
@@ -83,7 +74,6 @@ public class ItemSelectorScreen extends Screen {
         
         if (checkClick(28, mouseX, mouseY)) openBuilder("TOOL", Items.DIAMOND_PICKAXE);
         
-        // Hyperion Preset (Sends special flag)
         if (checkClick(16, mouseX, mouseY)) openBuilder("HYPERION", Items.IRON_SWORD);
 
         if (checkClick(49, mouseX, mouseY)) this.close();
@@ -92,12 +82,8 @@ public class ItemSelectorScreen extends Screen {
 
     private void openBuilder(String type, Item baseItem) {
         client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-        // Next Step: Open the ItemBuilderScreen
-        // I will provide ItemBuilderScreen in the NEXT reply.
-        // For now, let's close to avoid crash until you have the next file.
+        // Linked to Builder
         client.setScreen(new ItemBuilderScreen(type, baseItem)); 
-        this.close(); // Placeholder
-        client.player.sendMessage(Text.literal("Selected: " + type + ". Builder coming in next update!"), false);
     }
 
     private boolean checkClick(int slot, double mx, double my) {
