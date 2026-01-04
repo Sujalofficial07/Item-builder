@@ -1,78 +1,80 @@
 package com.sujal.skyblockmaker.registry;
 
-import com.sujal.skyblockmaker.api.SkyblockSkillsApi;
 import com.sujal.skyblockmaker.api.SkyblockStatsApi;
-import com.sujal.skyblockmaker.util.IEntityDataSaver;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 public class ModPackets {
     public static final Identifier ITEM_CREATE_PACKET = new Identifier("skyblockmaker", "create_item");
-    public static final Identifier SKILL_SYNC_PACKET = new Identifier("skyblockmaker", "skill_sync"); // NEW
+    public static final Identifier SKILL_SYNC_PACKET = new Identifier("skyblockmaker", "skill_sync");
 
     public static void registerServerPackets() {
-        // 1. Item Creator Packet (Existing)
         ServerPlayNetworking.registerGlobalReceiver(ITEM_CREATE_PACKET, (server, player, handler, buf, responseSender) -> {
+            
+            // 1. Read Data (Order MUST match Client)
             String type = buf.readString();
             String name = buf.readString();
-            String reforge = buf.readString();
             String rarity = buf.readString();
             String lore = buf.readString();
-            String abilityName = buf.readString();
-            String abilityDesc = buf.readString();
+            
+            String abName = buf.readString();
+            String abDesc = buf.readString();
+            double abCost = buf.readDouble();
 
             double dmg = buf.readDouble();
             double str = buf.readDouble();
             double cc = buf.readDouble();
             double cd = buf.readDouble();
+            double atks = buf.readDouble();
+            
             double hp = buf.readDouble();
             double def = buf.readDouble();
-            double speed = buf.readDouble();
+            double spd = buf.readDouble();
             double intel = buf.readDouble();
+            
+            double fero = buf.readDouble();
+            double magic = buf.readDouble();
 
             server.execute(() -> {
+                // 2. Determine Material
                 ItemStack stack;
-                switch (type) {
-                    case "BOW" -> stack = new ItemStack(Items.BOW);
-                    case "HELMET" -> stack = new ItemStack(Items.DIAMOND_HELMET);
-                    case "CHESTPLATE" -> stack = new ItemStack(Items.DIAMOND_CHESTPLATE);
-                    case "LEGGINGS" -> stack = new ItemStack(Items.DIAMOND_LEGGINGS);
-                    case "BOOTS" -> stack = new ItemStack(Items.DIAMOND_BOOTS);
-                    case "PICKAXE" -> stack = new ItemStack(Items.DIAMOND_PICKAXE);
-                    case "AXE" -> stack = new ItemStack(Items.DIAMOND_AXE);
-                    case "SHOVEL" -> stack = new ItemStack(Items.DIAMOND_SHOVEL);
-                    case "HOE" -> stack = new ItemStack(Items.DIAMOND_HOE);
-                    default -> stack = new ItemStack(Items.DIAMOND_SWORD);
-                }
+                if (type.equals("SWORD")) stack = new ItemStack(Items.DIAMOND_SWORD);
+                else if (type.equals("BOW")) stack = new ItemStack(Items.BOW);
+                else if (type.equals("HYPERION")) stack = new ItemStack(Items.IRON_SWORD); // Hyperion is Iron Sword base
+                else if (type.equals("ARMOR")) stack = new ItemStack(Items.DIAMOND_CHESTPLATE);
+                else stack = new ItemStack(Items.STICK);
 
-                String fullName = (reforge.isEmpty() ? "" : reforge + " ") + name;
+                // 3. Set Name Color based on Rarity
                 Formatting color = getRarityColor(rarity);
-                stack.setCustomName(Text.literal(fullName).formatted(color));
+                stack.setCustomName(Text.literal(name).formatted(color));
 
-                stack.addHideFlag(ItemStack.TooltipSection.MODIFIERS);
-                stack.addHideFlag(ItemStack.TooltipSection.ADDITIONAL);
-                stack.addHideFlag(ItemStack.TooltipSection.UNBREAKABLE);
-                stack.getOrCreateNbt().putBoolean("Unbreakable", true);
-
+                // 4. Set Skyblock Stats
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DAMAGE, dmg);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.STRENGTH, str);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.CRIT_CHANCE, cc);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.CRIT_DAMAGE, cd);
+                SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.ATTACK_SPEED, atks);
+                
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.HEALTH, hp);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DEFENSE, def);
-                SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.SPEED, speed);
+                SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.SPEED, spd);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.INTELLIGENCE, intel);
+                
+                SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.FEROCITY, fero);
+                SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MAGIC_FIND, magic);
 
+                // 5. Text Data
                 SkyblockStatsApi.setString(stack, "Rarity", rarity);
                 SkyblockStatsApi.setString(stack, "Lore", lore);
-                SkyblockStatsApi.setString(stack, "AbilityName", abilityName);
-                SkyblockStatsApi.setString(stack, "AbilityDesc", abilityDesc);
+                SkyblockStatsApi.setString(stack, "AbilityName", abName);
+                SkyblockStatsApi.setString(stack, "AbilityDesc", abDesc);
+                if(abCost > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MANA_COST, abCost);
 
+                // 6. Give Item
                 player.getInventory().insertStack(stack);
             });
         });
