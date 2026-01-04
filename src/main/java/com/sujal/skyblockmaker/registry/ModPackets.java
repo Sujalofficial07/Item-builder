@@ -15,7 +15,6 @@ public class ModPackets {
     public static void registerServerPackets() {
         ServerPlayNetworking.registerGlobalReceiver(ITEM_CREATE_PACKET, (server, player, handler, buf, responseSender) -> {
             
-            // 1. Read Data (Order MUST match Client)
             String type = buf.readString();
             String name = buf.readString();
             String rarity = buf.readString();
@@ -40,19 +39,16 @@ public class ModPackets {
             double magic = buf.readDouble();
 
             server.execute(() -> {
-                // 2. Determine Material
                 ItemStack stack;
                 if (type.equals("SWORD")) stack = new ItemStack(Items.DIAMOND_SWORD);
                 else if (type.equals("BOW")) stack = new ItemStack(Items.BOW);
-                else if (type.equals("HYPERION")) stack = new ItemStack(Items.IRON_SWORD); // Hyperion is Iron Sword base
+                else if (type.equals("HYPERION")) stack = new ItemStack(Items.IRON_SWORD);
                 else if (type.equals("ARMOR")) stack = new ItemStack(Items.DIAMOND_CHESTPLATE);
                 else stack = new ItemStack(Items.STICK);
 
-                // 3. Set Name Color based on Rarity
                 Formatting color = getRarityColor(rarity);
                 stack.setCustomName(Text.literal(name).formatted(color));
 
-                // 4. Set Skyblock Stats
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DAMAGE, dmg);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.STRENGTH, str);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.CRIT_CHANCE, cc);
@@ -66,15 +62,14 @@ public class ModPackets {
                 
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.FEROCITY, fero);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MAGIC_FIND, magic);
+                
+                if(abCost > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MANA_COST, abCost);
 
-                // 5. Text Data
                 SkyblockStatsApi.setString(stack, "Rarity", rarity);
                 SkyblockStatsApi.setString(stack, "Lore", lore);
                 SkyblockStatsApi.setString(stack, "AbilityName", abName);
                 SkyblockStatsApi.setString(stack, "AbilityDesc", abDesc);
-                if(abCost > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MANA_COST, abCost);
 
-                // 6. Give Item
                 player.getInventory().insertStack(stack);
             });
         });
