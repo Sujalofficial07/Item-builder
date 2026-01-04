@@ -95,7 +95,7 @@ public class ItemSelectorScreen extends Screen {
         // Next Step: Open the ItemBuilderScreen
         // I will provide ItemBuilderScreen in the NEXT reply.
         // For now, let's close to avoid crash until you have the next file.
-        // client.setScreen(new ItemBuilderScreen(type, baseItem)); 
+        client.setScreen(new ItemBuilderScreen(type, baseItem)); 
         this.close(); // Placeholder
         client.player.sendMessage(Text.literal("Selected: " + type + ". Builder coming in next update!"), false);
     }
