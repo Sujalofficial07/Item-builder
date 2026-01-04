@@ -1,5 +1,7 @@
 package com.sujal.skyblockmaker.client.gui;
 
+import com.sujal.skyblockmaker.api.SkyblockItem;
+import com.sujal.skyblockmaker.registry.ModItems;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -74,7 +76,15 @@ public class ItemSelectorScreen extends Screen {
         
         if (checkClick(28, mouseX, mouseY)) openBuilder("TOOL", Items.DIAMOND_PICKAXE);
         
-        if (checkClick(16, mouseX, mouseY)) openBuilder("HYPERION", Items.IRON_SWORD);
+        if (checkClick(16, mouseX, mouseY)) {
+            // Special case for Hyperion: Use the Registered Preset
+            SkyblockItem hyp = ModItems.get("HYPERION");
+            if(hyp != null) {
+                client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                client.setScreen(new ItemBuilderScreen(hyp));
+                return true;
+            }
+        }
 
         if (checkClick(49, mouseX, mouseY)) this.close();
         return super.mouseClicked(mouseX, mouseY, button);
@@ -82,8 +92,9 @@ public class ItemSelectorScreen extends Screen {
 
     private void openBuilder(String type, Item baseItem) {
         client.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-        // Linked to Builder
-        client.setScreen(new ItemBuilderScreen(type, baseItem)); 
+        // FIX: Create a temporary SkyblockItem to satisfy the new constructor
+        SkyblockItem temp = new SkyblockItem("TEMP_BUILDER", type, baseItem, "COMMON", type);
+        client.setScreen(new ItemBuilderScreen(temp)); 
     }
 
     private boolean checkClick(int slot, double mx, double my) {
