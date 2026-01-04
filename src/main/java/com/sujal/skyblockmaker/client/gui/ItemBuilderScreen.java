@@ -8,8 +8,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 
@@ -18,14 +16,12 @@ public class ItemBuilderScreen extends Screen {
     private final String itemType;
     private final Item baseItem;
     
-    // Inputs
     private TextFieldWidget nameF, loreF;
-    private TextFieldWidget dmgF, strF, ccF, cdF, atksF; // Offensive
-    private TextFieldWidget hpF, defF, spdF, intelF;     // Defensive
-    private TextFieldWidget feroF, magicF;               // Misc
-    private TextFieldWidget abNameF, abDescF, abCostF;   // Ability
+    private TextFieldWidget dmgF, strF, ccF, cdF, atksF; 
+    private TextFieldWidget hpF, defF, spdF, intelF;
+    private TextFieldWidget feroF, magicF;
+    private TextFieldWidget abNameF, abDescF, abCostF;
 
-    // Cycles
     private String currentRarity = "LEGENDARY";
     private final String[] rarities = {"COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC", "DIVINE", "SPECIAL"};
     private ButtonWidget rarityBtn;
@@ -41,10 +37,8 @@ public class ItemBuilderScreen extends Screen {
         int x = this.width / 2 - 160;
         int y = 20;
 
-        // --- HEADER ---
-        // Rarity Button
+        // Rarity Cycle Button
         rarityBtn = ButtonWidget.builder(Text.literal(currentRarity), b -> {
-            // Cycle Rarity
             for(int i=0; i<rarities.length; i++) {
                 if(rarities[i].equals(currentRarity)) {
                     currentRarity = rarities[(i+1)%rarities.length];
@@ -58,37 +52,37 @@ public class ItemBuilderScreen extends Screen {
         addInput(nameF = createField(x, y, 210, "Item Name (e.g. Hyperion)"));
         y += 25;
 
-        // --- ROW 1: OFFENSIVE ---
-        addInput(dmgF = createField(x, y, 60, "Dmg"));
-        addInput(strF = createField(x + 65, y, 60, "Str"));
-        addInput(ccF = createField(x + 130, y, 60, "CC %"));
-        addInput(cdF = createField(x + 195, y, 60, "CD %"));
+        // Row 1: Offensive
+        addInput(dmgF = createField(x, y, 60, "Damage"));
+        addInput(strF = createField(x + 65, y, 60, "Strength"));
+        addInput(ccF = createField(x + 130, y, 60, "Crit %"));
+        addInput(cdF = createField(x + 195, y, 60, "Crit Dmg"));
         addInput(atksF = createField(x + 260, y, 60, "Atk Spd"));
         y += 25;
 
-        // --- ROW 2: DEFENSIVE ---
-        addInput(hpF = createField(x, y, 60, "HP"));
-        addInput(defF = createField(x + 65, y, 60, "Def"));
-        addInput(spdF = createField(x + 130, y, 60, "Spd"));
+        // Row 2: Defensive & Misc
+        addInput(hpF = createField(x, y, 60, "Health"));
+        addInput(defF = createField(x + 65, y, 60, "Defense"));
+        addInput(spdF = createField(x + 130, y, 60, "Speed"));
         addInput(intelF = createField(x + 195, y, 60, "Intel"));
-        addInput(feroF = createField(x + 260, y, 60, "Fero")); // Ferocity
+        addInput(feroF = createField(x + 260, y, 60, "Ferocity"));
         y += 25;
 
-        // --- ROW 3: ABILITY ---
+        // Row 3: Ability
         addInput(abNameF = createField(x, y, 150, "Ability Name (e.g. Wither Impact)"));
         addInput(abCostF = createField(x + 160, y, 80, "Mana Cost"));
-        addInput(magicF = createField(x + 250, y, 70, "M. Find"));
+        addInput(magicF = createField(x + 250, y, 70, "Magic Find"));
         y += 25;
         
-        addInput(abDescF = createField(x, y, 320, "Ability Description (Teleport 10 blocks...)"));
+        addInput(abDescF = createField(x, y, 320, "Ability Description"));
         y += 25;
 
-        // --- ROW 4: EXTRA LORE ---
-        addInput(loreF = createField(x, y, 320, "Extra Lore / Flavour Text"));
+        // Row 4: Lore
+        addInput(loreF = createField(x, y, 320, "Extra Lore / Text"));
         y += 30;
 
-        // --- CREATE BUTTON ---
-        addDrawableChild(ButtonWidget.builder(Text.literal("§lCONSTRUCT ITEM"), b -> sendPacket())
+        // Create Button
+        addDrawableChild(ButtonWidget.builder(Text.literal("CONSTRUCT ITEM"), b -> sendPacket())
                 .dimensions(this.width / 2 - 60, y, 120, 20).build());
     }
 
@@ -102,18 +96,15 @@ public class ItemBuilderScreen extends Screen {
     private void sendPacket() {
         PacketByteBuf buf = PacketByteBufs.create();
         
-        // Identity
-        buf.writeString(itemType); // SWORD, BOW, etc
+        buf.writeString(itemType);
         buf.writeString(nameF.getText());
         buf.writeString(currentRarity);
         buf.writeString(loreF.getText());
         
-        // Ability
         buf.writeString(abNameF.getText());
         buf.writeString(abDescF.getText());
-        buf.writeDouble(parse(abCostF)); // Mana Cost
+        buf.writeDouble(parse(abCostF));
 
-        // Stats
         buf.writeDouble(parse(dmgF));
         buf.writeDouble(parse(strF));
         buf.writeDouble(parse(ccF));
