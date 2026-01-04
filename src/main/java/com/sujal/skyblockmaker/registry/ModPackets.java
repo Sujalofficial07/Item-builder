@@ -37,6 +37,7 @@ public class ModPackets {
             
             double fero = buf.readDouble();
             double magic = buf.readDouble();
+            double gs = buf.readDouble(); // Gear Score
 
             server.execute(() -> {
                 ItemStack stack;
@@ -62,6 +63,7 @@ public class ModPackets {
                 
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.FEROCITY, fero);
                 SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MAGIC_FIND, magic);
+                SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.GEAR_SCORE, gs);
                 
                 if(abCost > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MANA_COST, abCost);
 
