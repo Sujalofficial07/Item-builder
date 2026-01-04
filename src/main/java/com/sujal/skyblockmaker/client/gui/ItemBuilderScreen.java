@@ -14,31 +14,30 @@ import net.minecraft.text.Text;
 public class ItemBuilderScreen extends Screen {
 
     private final String itemType;
-    private final Item baseItem;
     
     // Inputs
-    private TextFieldWidget nameF, loreF;
+    private TextFieldWidget nameF, reforgeF, starsF, enchantsF;
     private TextFieldWidget dmgF, strF, ccF, cdF, atksF; 
     private TextFieldWidget hpF, defF, spdF, intelF;
-    private TextFieldWidget feroF, magicF, gearScoreF; // Added Gear Score
+    private TextFieldWidget feroF, magicF, gearScoreF; 
     private TextFieldWidget abNameF, abDescF, abCostF;
 
     private String currentRarity = "LEGENDARY";
+    private boolean isDungeon = true;
     private final String[] rarities = {"COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC", "DIVINE", "SPECIAL"};
-    private ButtonWidget rarityBtn;
+    private ButtonWidget rarityBtn, dungeonBtn;
 
     public ItemBuilderScreen(String itemType, Item baseItem) {
         super(Text.literal("Item Architect"));
         this.itemType = itemType;
-        this.baseItem = baseItem;
     }
 
     @Override
     protected void init() {
         int x = this.width / 2 - 160;
-        int y = 20;
+        int y = 10;
 
-        // Rarity
+        // Rarity & Dungeon Toggle
         rarityBtn = ButtonWidget.builder(Text.literal(currentRarity), b -> {
             for(int i=0; i<rarities.length; i++) {
                 if(rarities[i].equals(currentRarity)) {
@@ -47,13 +46,22 @@ public class ItemBuilderScreen extends Screen {
                     break;
                 }
             }
-        }).dimensions(x + 220, y, 100, 20).build();
+        }).dimensions(x + 220, y, 80, 20).build();
         addDrawableChild(rarityBtn);
 
-        addInput(nameF = createField(x, y, 210, "Item Name (e.g. Hyperion)"));
+        dungeonBtn = ButtonWidget.builder(Text.literal("DUNGEON: YES"), b -> {
+            isDungeon = !isDungeon;
+            b.setMessage(Text.literal("DUNGEON: " + (isDungeon ? "YES" : "NO")));
+        }).dimensions(x + 305, y, 80, 20).build();
+        addDrawableChild(dungeonBtn);
+
+        // Header
+        addInput(reforgeF = createField(x, y, 70, "Reforge"));
+        addInput(nameF = createField(x + 75, y, 100, "Name (Hyperion)"));
+        addInput(starsF = createField(x + 180, y, 35, "Stars (✪)"));
         y += 25;
 
-        // Stats Row 1 (Offense)
+        // Stats Row 1
         addInput(dmgF = createField(x, y, 60, "Damage"));
         addInput(strF = createField(x + 65, y, 60, "Strength"));
         addInput(ccF = createField(x + 130, y, 60, "Crit %"));
@@ -61,7 +69,7 @@ public class ItemBuilderScreen extends Screen {
         addInput(atksF = createField(x + 260, y, 60, "Atk Spd"));
         y += 25;
 
-        // Stats Row 2 (Defense + Misc)
+        // Stats Row 2
         addInput(hpF = createField(x, y, 60, "Health"));
         addInput(defF = createField(x + 65, y, 60, "Defense"));
         addInput(spdF = createField(x + 130, y, 60, "Speed"));
@@ -69,21 +77,20 @@ public class ItemBuilderScreen extends Screen {
         addInput(feroF = createField(x + 260, y, 60, "Ferocity"));
         y += 25;
 
-        // Stats Row 3 (Extra)
+        // Stats Row 3
         addInput(magicF = createField(x, y, 70, "Magic Find"));
-        addInput(gearScoreF = createField(x + 80, y, 70, "Gear Score")); // NEW
+        addInput(gearScoreF = createField(x + 80, y, 70, "Gear Score"));
+        y += 25;
+
+        // Enchants
+        addInput(enchantsF = createField(x, y, 320, "Enchants (Sharpness VII, Giant Killer VI...)"));
         y += 25;
 
         // Ability
-        addInput(abNameF = createField(x, y, 150, "Ability Name (e.g. Wither Impact)"));
+        addInput(abNameF = createField(x, y, 150, "Ability Name"));
         addInput(abCostF = createField(x + 160, y, 80, "Mana Cost"));
         y += 25;
-        
         addInput(abDescF = createField(x, y, 320, "Ability Description"));
-        y += 25;
-
-        // Lore
-        addInput(loreF = createField(x, y, 320, "Extra Lore / Text"));
         y += 30;
 
         // Create
@@ -104,7 +111,10 @@ public class ItemBuilderScreen extends Screen {
         buf.writeString(itemType);
         buf.writeString(nameF.getText());
         buf.writeString(currentRarity);
-        buf.writeString(loreF.getText());
+        buf.writeString(reforgeF.getText()); // New
+        buf.writeString(starsF.getText());   // New
+        buf.writeBoolean(isDungeon);         // New
+        buf.writeString(enchantsF.getText()); // New
         
         buf.writeString(abNameF.getText());
         buf.writeString(abDescF.getText());
@@ -120,23 +130,20 @@ public class ItemBuilderScreen extends Screen {
         buf.writeDouble(parse(defF));
         buf.writeDouble(parse(spdF));
         buf.writeDouble(parse(intelF));
-        
         buf.writeDouble(parse(feroF));
         buf.writeDouble(parse(magicF));
-        buf.writeDouble(parse(gearScoreF)); // New
+        buf.writeDouble(parse(gearScoreF));
 
         ClientPlayNetworking.send(ModPackets.ITEM_CREATE_PACKET, buf);
         this.close();
     }
 
-    private double parse(TextFieldWidget f) { 
-        try { return Double.parseDouble(f.getText()); } catch(Exception e){ return 0; } 
-    }
+    private double parse(TextFieldWidget f) { try { return Double.parseDouble(f.getText()); } catch(Exception e){ return 0; } }
 
     @Override
     public void render(DrawContext c, int mx, int my, float d) { 
         renderBackground(c); 
-        c.drawCenteredTextWithShadow(textRenderer, "Item Architect", this.width/2, 10, 0xFFFFFF);
+        c.drawCenteredTextWithShadow(textRenderer, "Hyperion Architect", this.width/2, 5, 0xFFFFFF);
         super.render(c, mx, my, d); 
     }
 }
