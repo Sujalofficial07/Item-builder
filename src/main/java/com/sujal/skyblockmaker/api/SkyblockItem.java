@@ -5,26 +5,25 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
-public abstract class SkyblockItem {
+// REMOVED 'abstract' so you can create simple items directly
+public class SkyblockItem {
     
     public String id;
     public String displayName;
     public Item material;
     public String rarity;
-    public String type; // WEAPON, BOW, ARMOR, MATERIAL
+    public String type; 
     
-    // Stats
     public double damage = 0, strength = 0, critChance = 0, critDamage = 0, attackSpeed = 0;
     public double health = 0, defense = 0, speed = 0, intelligence = 0, ferocity = 0, magicFind = 0;
     
-    // Ability
     public String abilityName = "";
     public String abilityDesc = "";
     public double manaCost = 0;
-    public int cooldownTicks = 0; // Cooldown support
+    public int cooldownTicks = 0;
 
     public boolean isDungeon = false;
-    public boolean isEnchanted = false; // For glowing effect
+    public boolean isEnchanted = false;
 
     public SkyblockItem(String id, String name, Item mat, String rarity, String type) {
         this.id = id;
@@ -34,14 +33,12 @@ public abstract class SkyblockItem {
         this.type = type;
     }
 
-    // Har item apni ability yahan likhega
     public void onAbility(World world, PlayerEntity player, ItemStack stack) {
-        // Default: No ability
+        // Default: Do nothing
     }
 
     public ItemStack createStack() {
         ItemStack stack = new ItemStack(material);
-        
         SkyblockStatsApi.setString(stack, "SkyblockID", id);
         SkyblockStatsApi.setString(stack, "Rarity", rarity);
         
@@ -63,8 +60,8 @@ public abstract class SkyblockItem {
             if(manaCost > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MANA_COST, manaCost);
         }
 
-        if(isDungeon) SkyblockStatsApi.setString(stack, "IsDungeon", "true");
         if(isEnchanted) stack.addHideFlag(ItemStack.TooltipSection.ENCHANTMENTS);
+        if(isDungeon) SkyblockStatsApi.setString(stack, "IsDungeon", "true");
         
         return stack;
     }
