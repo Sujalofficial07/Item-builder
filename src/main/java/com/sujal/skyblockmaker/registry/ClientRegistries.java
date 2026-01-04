@@ -2,7 +2,7 @@ package com.sujal.skyblockmaker.registry;
 
 import com.sujal.skyblockmaker.api.SkyblockStatsApi;
 import com.sujal.skyblockmaker.client.SkyblockHudOverlay;
-import com.sujal.skyblockmaker.client.gui.ItemSelectorScreen; // CHANGED: Builder -> Selector
+import com.sujal.skyblockmaker.client.gui.ItemSelectorScreen; 
 import com.sujal.skyblockmaker.client.gui.ProfileScreen;
 import com.sujal.skyblockmaker.client.gui.SkillsScreen;
 import com.sujal.skyblockmaker.util.IEntityDataSaver;
@@ -25,7 +25,6 @@ public class ClientRegistries {
         
         HudRenderCallback.EVENT.register(new SkyblockHudOverlay());
 
-        // Sync Logic
         ClientPlayNetworking.registerGlobalReceiver(ModPackets.SKILL_SYNC_PACKET, (client, handler, buf, responseSender) -> {
             NbtCompound skillsData = buf.readNbt();
             client.execute(() -> {
@@ -35,10 +34,9 @@ public class ClientRegistries {
             });
         });
 
-        // Commands
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             
-            // 1. /sbbuilder -> Opens Selector (Chest GUI)
+            // Open Selector (Chest GUI)
             dispatcher.register(ClientCommandManager.literal("sbbuilder")
                 .executes(context -> {
                     shouldOpenBuilder = true; 
@@ -62,11 +60,9 @@ public class ClientRegistries {
                 }));
         });
 
-        // Tick Event: Opens Selector safely
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (shouldOpenBuilder) {
                 shouldOpenBuilder = false;
-                // FIX: Open ItemSelectorScreen (No Args) instead of ItemBuilderScreen
                 client.setScreen(new ItemSelectorScreen()); 
             }
         });
@@ -91,7 +87,7 @@ public class ClientRegistries {
                 addStat(lines, stack, SkyblockStatsApi.StatType.CRIT_DAMAGE, "Crit Damage", "%", BLUE);
                 addStat(lines, stack, SkyblockStatsApi.StatType.ATTACK_SPEED, "Bonus Attack Speed", "%", YELLOW);
 
-                // Defensive
+                // Defensive / Misc
                 if (SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.HEALTH) > 0 || SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.DEFENSE) > 0) {
                     lines.add(Text.literal(""));
                 }
@@ -100,7 +96,7 @@ public class ClientRegistries {
                 addStat(lines, stack, SkyblockStatsApi.StatType.SPEED, "Speed", Formatting.WHITE);
                 addStat(lines, stack, SkyblockStatsApi.StatType.INTELLIGENCE, "Intelligence", AQUA);
                 addStat(lines, stack, SkyblockStatsApi.StatType.MAGIC_FIND, "Magic Find", AQUA);
-                addStat(lines, stack, SkyblockStatsApi.StatType.FEROCITY, "Ferocity", RED); // New
+                addStat(lines, stack, SkyblockStatsApi.StatType.FEROCITY, "Ferocity", RED);
 
                 // Lore
                 String lore = SkyblockStatsApi.getString(stack, "Lore");
@@ -119,7 +115,6 @@ public class ClientRegistries {
                     String abDesc = SkyblockStatsApi.getString(stack, "AbilityDesc");
                     lines.add(Text.literal(abDesc).formatted(Formatting.GRAY));
                     
-                    // Mana Cost
                     double cost = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.MANA_COST);
                     if(cost > 0) {
                         lines.add(Text.literal("Mana Cost: " + (int)cost).formatted(Formatting.DARK_GRAY));
