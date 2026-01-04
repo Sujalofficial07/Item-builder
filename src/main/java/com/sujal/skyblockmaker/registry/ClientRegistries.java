@@ -2,7 +2,7 @@ package com.sujal.skyblockmaker.registry;
 
 import com.sujal.skyblockmaker.api.SkyblockStatsApi;
 import com.sujal.skyblockmaker.client.SkyblockHudOverlay;
-import com.sujal.skyblockmaker.client.gui.ItemSelectorScreen; 
+import com.sujal.skyblockmaker.client.gui.ItemSelectorScreen; // Correct Import
 import com.sujal.skyblockmaker.client.gui.ProfileScreen;
 import com.sujal.skyblockmaker.client.gui.SkillsScreen;
 import com.sujal.skyblockmaker.util.IEntityDataSaver;
@@ -79,15 +79,19 @@ public class ClientRegistries {
                 Formatting BLUE = Formatting.BLUE;
                 Formatting AQUA = Formatting.AQUA;
                 Formatting YELLOW = Formatting.YELLOW;
+                Formatting GRAY = Formatting.GRAY;
 
-                // Main Stats
+                // Gear Score
+                double gs = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.GEAR_SCORE);
+                if(gs > 0) lines.add(1, Text.literal("Gear Score: " + (int)gs).formatted(Formatting.LIGHT_PURPLE));
+
+                // Stats
                 addStat(lines, stack, SkyblockStatsApi.StatType.DAMAGE, "Damage", RED);
                 addStat(lines, stack, SkyblockStatsApi.StatType.STRENGTH, "Strength", RED);
                 addStat(lines, stack, SkyblockStatsApi.StatType.CRIT_CHANCE, "Crit Chance", "%", BLUE);
                 addStat(lines, stack, SkyblockStatsApi.StatType.CRIT_DAMAGE, "Crit Damage", "%", BLUE);
                 addStat(lines, stack, SkyblockStatsApi.StatType.ATTACK_SPEED, "Bonus Attack Speed", "%", YELLOW);
 
-                // Defensive / Misc
                 if (SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.HEALTH) > 0 || SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.DEFENSE) > 0) {
                     lines.add(Text.literal(""));
                 }
@@ -102,7 +106,7 @@ public class ClientRegistries {
                 String lore = SkyblockStatsApi.getString(stack, "Lore");
                 if (!lore.isEmpty()) {
                     lines.add(Text.literal(""));
-                    lines.add(Text.literal(lore).formatted(Formatting.GRAY, Formatting.ITALIC));
+                    lines.add(Text.literal(lore).formatted(GRAY, Formatting.ITALIC));
                 }
 
                 // Ability
@@ -113,7 +117,7 @@ public class ClientRegistries {
                             .append(Text.literal("RIGHT CLICK").formatted(Formatting.YELLOW, Formatting.BOLD)));
                     
                     String abDesc = SkyblockStatsApi.getString(stack, "AbilityDesc");
-                    lines.add(Text.literal(abDesc).formatted(Formatting.GRAY));
+                    lines.add(Text.literal(abDesc).formatted(GRAY));
                     
                     double cost = SkyblockStatsApi.getStat(stack, SkyblockStatsApi.StatType.MANA_COST);
                     if(cost > 0) {
