@@ -12,34 +12,26 @@ import net.minecraft.util.Identifier;
 public class CategorySelectionScreen extends Screen {
 
     private static final Identifier TEXTURE = new Identifier("textures/gui/container/generic_54.png");
-    private final int guiWidth = 176;
-    private final int guiHeight = 222;
     private int guiLeft, guiTop;
 
     public CategorySelectionScreen() { super(Text.literal("Select Category")); }
 
     @Override
     protected void init() {
-        this.guiLeft = (this.width - guiWidth) / 2;
-        this.guiTop = (this.height - guiHeight) / 2;
+        this.guiLeft = (this.width - 176) / 2;
+        this.guiTop = (this.height - 222) / 2;
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context);
-        context.drawTexture(TEXTURE, guiLeft, guiTop, 0, 0, guiWidth, guiHeight);
-        context.drawText(textRenderer, "Item Categories", guiLeft + 8, guiTop + 6, 0x404040, false);
+        context.drawTexture(TEXTURE, guiLeft, guiTop, 0, 0, 176, 222);
+        context.drawText(textRenderer, "Skyblock Item Menu", guiLeft + 8, guiTop + 6, 0x404040, false);
 
-        // Category Icons
         drawCategory(context, Items.DIAMOND_SWORD, "Weapons", 20, mouseX, mouseY);
         drawCategory(context, Items.BOW, "Bows", 22, mouseX, mouseY);
         drawCategory(context, Items.DIAMOND_CHESTPLATE, "Armor", 24, mouseX, mouseY);
-        
-        drawCategory(context, Items.COBBLESTONE, "Materials", 30, mouseX, mouseY);
-        drawCategory(context, Items.WITHER_SKELETON_SKULL, "Dungeon Items", 32, mouseX, mouseY);
-
-        // Close
-        drawCategory(context, Items.BARRIER, "Close", 49, mouseX, mouseY);
+        drawCategory(context, Items.COBBLESTONE, "Materials", 31, mouseX, mouseY);
 
         super.render(context, mouseX, mouseY, delta);
     }
@@ -57,13 +49,10 @@ public class CategorySelectionScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (checkClick(20, mouseX, mouseY)) openList("SWORD");
+        if (checkClick(20, mouseX, mouseY)) openList("WEAPON");
         if (checkClick(22, mouseX, mouseY)) openList("BOW");
         if (checkClick(24, mouseX, mouseY)) openList("ARMOR");
-        if (checkClick(30, mouseX, mouseY)) openList("MATERIAL");
-        if (checkClick(32, mouseX, mouseY)) openList("DUNGEON_ITEM");
-        
-        if (checkClick(49, mouseX, mouseY)) this.close();
+        if (checkClick(31, mouseX, mouseY)) openList("MATERIAL");
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
