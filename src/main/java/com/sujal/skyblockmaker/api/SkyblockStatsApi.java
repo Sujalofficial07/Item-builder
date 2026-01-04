@@ -7,15 +7,12 @@ public class SkyblockStatsApi {
     public static final String NBT_KEY = "SB_Stats";
 
     public enum StatType {
-        // Core Stats (Fixed: Added DAMAGE & MANA_COST)
+        // Core
         DAMAGE, HEALTH, DEFENSE, STRENGTH, SPEED, CRIT_CHANCE, CRIT_DAMAGE, INTELLIGENCE,
-        
-        // Advanced Stats
+        // Advanced
         ATTACK_SPEED, FEROCITY, MAGIC_FIND, ABILITY_DAMAGE, SEA_CREATURE_CHANCE, MANA_COST,
-        
-        // Mining/Misc
+        // Misc
         MINING_SPEED, MINING_FORTUNE, FARMING_FORTUNE, FORAGING_FORTUNE,
-        
         // Meta
         GEAR_SCORE
     }
