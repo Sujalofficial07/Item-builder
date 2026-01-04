@@ -7,25 +7,24 @@ import net.minecraft.world.World;
 
 public abstract class SkyblockItem {
     
-    // Basic Info
     public String id;
     public String displayName;
     public Item material;
     public String rarity;
-    public String type; // SWORD, BOW, MATERIAL
+    public String type; // WEAPON, BOW, ARMOR, MATERIAL
     
-    // Stats (Default 0)
+    // Stats
     public double damage = 0, strength = 0, critChance = 0, critDamage = 0, attackSpeed = 0;
     public double health = 0, defense = 0, speed = 0, intelligence = 0, ferocity = 0, magicFind = 0;
     
-    // Ability Info
+    // Ability
     public String abilityName = "";
     public String abilityDesc = "";
     public double manaCost = 0;
-    public int cooldownTicks = 0;
+    public int cooldownTicks = 0; // Cooldown support
 
     public boolean isDungeon = false;
-    public boolean isEnchanted = false;
+    public boolean isEnchanted = false; // For glowing effect
 
     public SkyblockItem(String id, String name, Item mat, String rarity, String type) {
         this.id = id;
@@ -35,19 +34,17 @@ public abstract class SkyblockItem {
         this.type = type;
     }
 
-    // Har item apni marzi se isko override karega
+    // Har item apni ability yahan likhega
     public void onAbility(World world, PlayerEntity player, ItemStack stack) {
-        // Default: Do nothing
+        // Default: No ability
     }
 
     public ItemStack createStack() {
         ItemStack stack = new ItemStack(material);
         
-        // Save ID for lookup
         SkyblockStatsApi.setString(stack, "SkyblockID", id);
-        
-        // Save Stats
         SkyblockStatsApi.setString(stack, "Rarity", rarity);
+        
         SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.DAMAGE, damage);
         SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.STRENGTH, strength);
         SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.CRIT_CHANCE, critChance);
@@ -66,8 +63,8 @@ public abstract class SkyblockItem {
             if(manaCost > 0) SkyblockStatsApi.setStat(stack, SkyblockStatsApi.StatType.MANA_COST, manaCost);
         }
 
-        if(isEnchanted) stack.addHideFlag(ItemStack.TooltipSection.ENCHANTMENTS);
         if(isDungeon) SkyblockStatsApi.setString(stack, "IsDungeon", "true");
+        if(isEnchanted) stack.addHideFlag(ItemStack.TooltipSection.ENCHANTMENTS);
         
         return stack;
     }
